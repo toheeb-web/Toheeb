@@ -2,8 +2,13 @@
   "name": "chopconnect-root",
   "private": true,
   "scripts": {
-    "build": "npm --prefix web install && npm --prefix web run build",
+    "build": "node build.cjs",
     "dev": "npm --prefix web run dev",
     "install:web": "npm --prefix web install"
+  },
+  "allowScripts": {
+    "@firebase/util": true,
+    "esbuild": true,
+    "protobufjs": true
   }
 }
