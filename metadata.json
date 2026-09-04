@@ -1,0 +1,6 @@
+{
+  "name": "ChopConnect",
+  "description": "Food marketplace connecting buyers, sellers, and riders with bidding, order tracking, and role management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
