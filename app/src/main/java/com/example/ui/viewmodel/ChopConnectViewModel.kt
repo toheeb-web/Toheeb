@@ -150,11 +150,26 @@ class ChopConnectViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun authenticateUser(name: String, email: String, role: String, isGoogle: Boolean = false) {
+    fun authenticateUser(
+        name: String,
+        email: String,
+        role: String,
+        vehicleType: String = "Motorcycle",
+        isGoogle: Boolean = false
+    ) {
         viewModelScope.launch {
+            try {
+                val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+                // Firebase Auth instance initialized and ready
+            } catch (e: Exception) {
+                // Fallback gracefully if Firebase cloud config is not set up
+            }
+
             val existing = db.userDao().getUserByEmail(email)
             val user = if (existing != null) {
-                existing
+                val updated = existing.copy(role = role, vehicleType = vehicleType)
+                db.userDao().updateUser(updated)
+                updated
             } else {
                 val newUser = UserEntity(
                     name = name.ifBlank { if (isGoogle) "Google User" else "Chop Lover" },
@@ -162,6 +177,7 @@ class ChopConnectViewModel(application: Application) : AndroidViewModel(applicat
                     role = role,
                     phone = "+1 (555) 012-3456",
                     address = "18 Marketplace Way",
+                    vehicleType = vehicleType,
                     isApproved = true,
                     avatarInitials = name.take(2).uppercase().ifBlank { "CC" }
                 )
@@ -169,7 +185,7 @@ class ChopConnectViewModel(application: Application) : AndroidViewModel(applicat
                 newUser.copy(id = id.toInt())
             }
             _currentUser.value = user
-            statusMessage.value = if (isGoogle) "Signed in with Google as ${user.name}" else "Logged in as ${user.name}"
+            statusMessage.value = if (isGoogle) "Signed in with Google as ${user.name} ($role)" else "Welcome, ${user.name} ($role)!"
         }
     }
 

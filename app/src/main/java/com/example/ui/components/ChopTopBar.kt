@@ -165,6 +165,16 @@ fun ChopTopBar(
                             },
                             modifier = Modifier.testTag("switch_to_admin")
                         )
+                        HorizontalDivider()
+                        DropdownMenuItem(
+                            text = { Text("Authentication & Role Select", fontWeight = FontWeight.Bold) },
+                            leadingIcon = { Icon(Icons.Default.AccountCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                            onClick = {
+                                roleMenuExpanded = false
+                                onOpenAuth()
+                            },
+                            modifier = Modifier.testTag("menu_open_auth_screen")
+                        )
                     }
                 }
 

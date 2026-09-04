@@ -69,58 +69,73 @@ fun ChopConnectApp(viewModel: ChopConnectViewModel = viewModel()) {
     // Buyer Navigation: 0 = Marketplace, 1 = Tracking, 2 = Cart
     var buyerTab by remember { mutableIntStateOf(0) }
 
-    // Dialog States
+    // Screen & Dialog States
+    var showAuthScreen by remember { mutableStateOf(false) }
     var showAuthDialog by remember { mutableStateOf(false) }
     var selectedFoodForDetail by remember { mutableStateOf<FoodItemEntity?>(null) }
     var selectedSellerForDetail by remember { mutableStateOf<SellerProfileEntity?>(null) }
 
-    if (showAuthDialog) {
-        AuthDialog(
+    if (showAuthScreen) {
+        AuthScreen(
             currentUser = currentUser,
-            onDismiss = { showAuthDialog = false },
-            onAuthenticate = { name, email, role, isGoogle ->
-                viewModel.authenticateUser(name, email, role, isGoogle)
+            onBack = { showAuthScreen = false },
+            onAuthenticate = { name, email, role, vehicleType, isGoogle ->
+                viewModel.authenticateUser(name, email, role, vehicleType, isGoogle)
+                showAuthScreen = false
             },
             onQuickSwitch = { role ->
                 viewModel.switchRole(role)
+                showAuthScreen = false
             }
         )
-    }
-
-    if (selectedFoodForDetail != null) {
-        FoodDetailDialog(
-            food = selectedFoodForDetail!!,
-            onDismiss = { selectedFoodForDetail = null },
-            onAddToCart = { food, qty ->
-                for (i in 1..qty) {
-                    viewModel.addToCart(food)
-                }
-            }
-        )
-    }
-
-    if (selectedSellerForDetail != null) {
-        val sellerDishes = allFoods.filter { it.sellerId == selectedSellerForDetail!!.id }
-        SellerDetailDialog(
-            seller = selectedSellerForDetail!!,
-            sellerFoods = sellerDishes,
-            onAddToCart = { viewModel.addToCart(it) },
-            onFoodClick = { selectedFoodForDetail = it },
-            onDismiss = { selectedSellerForDetail = null }
-        )
-    }
-
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            ChopTopBar(
+    } else {
+        if (showAuthDialog) {
+            AuthDialog(
                 currentUser = currentUser,
-                cartCount = cartCount,
-                onRoleSelect = { role -> viewModel.switchRole(role) },
-                onOpenCart = { buyerTab = 2 },
-                onOpenAuth = { showAuthDialog = true }
+                onDismiss = { showAuthDialog = false },
+                onAuthenticate = { name, email, role, isGoogle ->
+                    viewModel.authenticateUser(name, email, role, isGoogle = isGoogle)
+                },
+                onQuickSwitch = { role ->
+                    viewModel.switchRole(role)
+                }
             )
-        },
+        }
+
+        if (selectedFoodForDetail != null) {
+            FoodDetailDialog(
+                food = selectedFoodForDetail!!,
+                onDismiss = { selectedFoodForDetail = null },
+                onAddToCart = { food, qty ->
+                    for (i in 1..qty) {
+                        viewModel.addToCart(food)
+                    }
+                }
+            )
+        }
+
+        if (selectedSellerForDetail != null) {
+            val sellerDishes = allFoods.filter { it.sellerId == selectedSellerForDetail!!.id }
+            SellerDetailDialog(
+                seller = selectedSellerForDetail!!,
+                sellerFoods = sellerDishes,
+                onAddToCart = { viewModel.addToCart(it) },
+                onFoodClick = { selectedFoodForDetail = it },
+                onDismiss = { selectedSellerForDetail = null }
+            )
+        }
+
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                ChopTopBar(
+                    currentUser = currentUser,
+                    cartCount = cartCount,
+                    onRoleSelect = { role -> viewModel.switchRole(role) },
+                    onOpenCart = { buyerTab = 2 },
+                    onOpenAuth = { showAuthScreen = true }
+                )
+            },
         bottomBar = {
             if (currentUser.role == "BUYER") {
                 Column {
@@ -291,4 +306,5 @@ fun ChopConnectApp(viewModel: ChopConnectViewModel = viewModel()) {
             }
         }
     }
+}
 }
