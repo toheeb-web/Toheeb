@@ -7,11 +7,11 @@ import {
   UtensilsCrossed, 
   Store, 
   Bike, 
-  Sparkles, 
   Eye, 
   EyeOff, 
   ArrowRight,
-  ShieldCheck 
+  ShieldCheck,
+  Phone
 } from 'lucide-react';
 import { firebaseResetPassword, isFirebaseConfigured } from '../../services/firebase';
 
@@ -48,12 +48,12 @@ export const Login = () => {
     }
   };
 
-  const handleQuickLogin = async (demoEmail, demoPassword, role) => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
+  const handleQuickLogin = async (accountEmail, accountPassword, role) => {
+    setEmail(accountEmail);
+    setPassword(accountPassword);
     setSelectedRole(role);
     setLoading(true);
-    const user = await login(demoEmail, demoPassword, role);
+    const user = await login(accountEmail, accountPassword, role);
     setLoading(false);
     if (role === 'SELLER') navigate('/seller');
     else if (role === 'RIDER') navigate('/rider');
@@ -88,8 +88,8 @@ export const Login = () => {
             alt="ChopConnect" 
             className="w-14 h-14 rounded-2xl mx-auto mb-3 shadow-md object-cover ring-4 ring-brand-100" 
           />
-          <h1 className="text-2xl font-extrabold text-[#1C1B1F]">Welcome back to ChopConnect</h1>
-          <p className="text-xs text-[#79747E] mt-1">Sign in to your food & delivery account</p>
+          <h1 className="text-2xl font-black text-[#1C1B1F]">Welcome to ChopConnect</h1>
+          <p className="text-xs text-[#79747E] mt-1">Sign in to your Nigerian food & dispatch account</p>
         </div>
 
         {/* Role Selection Tabs */}
@@ -102,41 +102,41 @@ export const Login = () => {
               { id: 'BUYER', label: 'Buyer', icon: UtensilsCrossed },
               { id: 'SELLER', label: 'Seller', icon: Store },
               { id: 'RIDER', label: 'Rider', icon: Bike },
-            ].map((role) => {
-              const Icon = role.icon;
-              const isSelected = selectedRole === role.id;
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isSelected = selectedRole === tab.id;
               return (
                 <button
-                  key={role.id}
+                  key={tab.id}
                   type="button"
-                  onClick={() => setSelectedRole(role.id)}
-                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-xs font-bold transition-all ${
-                    isSelected 
-                      ? 'bg-brand-500 text-white border-brand-500 shadow-md scale-[1.02]' 
-                      : 'bg-neutral-50 text-[#49454F] border-neutral-200 hover:bg-neutral-100'
+                  onClick={() => setSelectedRole(tab.id)}
+                  className={`py-2.5 px-3 rounded-2xl text-xs font-bold flex flex-col items-center space-y-1 transition-all border ${
+                    isSelected
+                      ? 'bg-brand-500 text-white border-brand-500 shadow-md scale-[1.02]'
+                      : 'bg-white text-[#49454F] border-neutral-200 hover:bg-neutral-50'
                   }`}
                 >
-                  <Icon className="w-4 h-4 mb-1" />
-                  <span>{role.label}</span>
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Form */}
+        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-[#49454F] mb-1">Email Address</label>
             <div className="relative">
-              <Mail className="w-5 h-5 text-[#79747E] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-[#79747E] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E2D7CF] bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+                placeholder="name@chopconnect.ng"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#E2D7CF] bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
               />
             </div>
           </div>
@@ -147,25 +147,25 @@ export const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowResetModal(true)}
-                className="text-xs text-brand-600 hover:underline font-medium"
+                className="text-[11px] text-brand-600 hover:underline font-bold"
               >
-                Forgot password?
+                Forgot Password?
               </button>
             </div>
             <div className="relative">
-              <Lock className="w-5 h-5 text-[#79747E] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-[#79747E] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-[#E2D7CF] bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+                placeholder="••••••••"
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-[#E2D7CF] bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#79747E] hover:text-[#1C1B1F]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -175,35 +175,35 @@ export const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-brand-500 hover:bg-brand-600 active:scale-[0.99] text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm"
+            className="w-full py-3 bg-brand-500 hover:bg-brand-600 active:scale-[0.99] text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm mt-2"
           >
             <span>{loading ? 'Signing in...' : `Sign in as ${selectedRole}`}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        {/* Demo Fast Login Box */}
+        {/* Quick Access Account Selector */}
         <div className="mt-6 pt-6 border-t border-neutral-100">
           <p className="text-xs font-bold text-[#49454F] uppercase tracking-wider mb-2 flex items-center space-x-1">
-            <Sparkles className="w-3.5 h-3.5 text-brand-500" />
-            <span>1-Click Demo Profiles</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Instant Access Active Profiles</span>
           </p>
           <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => handleQuickLogin('amara@chopconnect.com', 'password123', 'BUYER')}
-              className="px-2.5 py-2 bg-brand-50/80 hover:bg-brand-100 text-brand-700 text-xs font-semibold rounded-xl border border-brand-200 text-center transition-colors"
+              className="px-2 py-2 bg-brand-50/80 hover:bg-brand-100 text-brand-700 text-xs font-semibold rounded-xl border border-brand-200 text-center transition-colors truncate"
             >
               Amara (Buyer)
             </button>
             <button
               onClick={() => handleQuickLogin('mamak@chopconnect.com', 'password123', 'SELLER')}
-              className="px-2.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold rounded-xl border border-amber-200 text-center transition-colors"
+              className="px-2 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold rounded-xl border border-amber-200 text-center transition-colors truncate"
             >
               Mama K (Seller)
             </button>
             <button
               onClick={() => handleQuickLogin('tunde@chopconnect.com', 'password123', 'RIDER')}
-              className="px-2.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-xl border border-blue-200 text-center transition-colors"
+              className="px-2 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl border border-emerald-200 text-center transition-colors truncate"
             >
               Tunde (Rider)
             </button>
@@ -217,6 +217,10 @@ export const Login = () => {
             Register now
           </Link>
         </p>
+
+        <div className="mt-4 pt-3 border-t border-neutral-100 text-center text-[11px] text-[#79747E]">
+          Nigerian Helpline: <a href="tel:+2348024764090" className="font-bold text-brand-600">+234 802 476 4090</a>
+        </div>
       </div>
 
       {/* Password Reset Modal */}
@@ -233,7 +237,7 @@ export const Login = () => {
                 required
                 value={resetEmail}
                 onChange={(e) => setResetEmail(e.target.value)}
-                placeholder="name@example.com"
+                placeholder="name@chopconnect.ng"
                 className="w-full px-3 py-2.5 rounded-xl border border-[#E2D7CF] text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
               />
               <div className="flex space-x-2 pt-2">

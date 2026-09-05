@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { useApp } from '../../context/AppContext';
+import { useApp, formatNaira } from '../../context/AppContext';
 import { 
   Bike, 
   MapPin, 
   Clock, 
-  DollarSign, 
   Check, 
   X, 
   Send, 
-  Sparkles,
-  Store,
-  ChevronRight,
-  ShieldCheck 
+  Sparkles, 
+  Store, 
+  ChevronRight, 
+  ShieldCheck,
+  CheckCircle2,
+  Phone
 } from 'lucide-react';
 
 export const AvailableDeliveries = () => {
@@ -19,35 +20,36 @@ export const AvailableDeliveries = () => {
 
   const [activeTab, setActiveTab] = useState('OPEN'); // 'OPEN' or 'MY_BIDS'
   const [biddingOrder, setBiddingOrder] = useState(null);
-  const [fee, setFee] = useState('4.50');
+  const [fee, setFee] = useState('1500');
   const [etaMinutes, setEtaMinutes] = useState('20');
 
   // Open orders looking for couriers (either READY_FOR_DELIVERY, PLACED, or PREPARING)
   const openOrders = orders.filter(o => o.status !== 'DELIVERED' && o.status !== 'REJECTED');
   
   // Bids submitted by current rider
-  const myBids = bids.filter(b => b.riderId === currentUser.id);
+  const myBids = bids.filter(b => b.riderId === currentUser?.id);
 
   const handleOpenBidModal = (order) => {
     setBiddingOrder(order);
-    setFee('4.50');
-    setEtaMinutes('18');
+    setFee('1500');
+    setEtaMinutes('20');
   };
 
   const handleBidSubmit = (e) => {
     e.preventDefault();
     if (!biddingOrder || !fee || !etaMinutes) {
-      showToast("Please enter your fee and estimated time.");
+      showToast("Please enter your delivery fee and estimated time.");
       return;
     }
 
     submitRiderBid({
       orderId: biddingOrder.id,
-      fee,
-      etaMinutes
+      fee: parseFloat(fee),
+      etaMinutes: parseInt(etaMinutes, 10)
     });
 
     setBiddingOrder(null);
+    showToast("Delivery bid submitted to customer!");
   };
 
   return (
@@ -55,7 +57,9 @@ export const AvailableDeliveries = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-[#1C1B1F]">Courier Delivery Opportunities</h1>
-          <p className="text-xs text-[#79747E]">Place competitive bids on live customer deliveries and earn fees</p>
+          <p className="text-xs text-[#79747E]">
+            Lagos & Abuja Dispatch • Standard fee ₦1,500 (You receive ₦1,100 net per trip)
+          </p>
         </div>
 
         {/* Tab Selector */}
@@ -63,7 +67,7 @@ export const AvailableDeliveries = () => {
           <button
             onClick={() => setActiveTab('OPEN')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'OPEN' ? 'bg-white text-delivery-600 shadow-sm' : 'text-[#79747E]'
+              activeTab === 'OPEN' ? 'bg-white text-emerald-700 shadow-sm' : 'text-[#79747E]'
             }`}
           >
             Available Orders ({openOrders.length})
@@ -71,7 +75,7 @@ export const AvailableDeliveries = () => {
           <button
             onClick={() => setActiveTab('MY_BIDS')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'MY_BIDS' ? 'bg-white text-delivery-600 shadow-sm' : 'text-[#79747E]'
+              activeTab === 'MY_BIDS' ? 'bg-white text-emerald-700 shadow-sm' : 'text-[#79747E]'
             }`}
           >
             My Submitted Bids ({myBids.length})
@@ -93,7 +97,7 @@ export const AvailableDeliveries = () => {
               >
                 <div>
                   <div className="flex justify-between items-start mb-3">
-                    <span className="text-xs font-extrabold text-delivery-600">
+                    <span className="text-xs font-black text-emerald-700">
                       Order #{order.id}
                     </span>
                     <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200 uppercase">
@@ -111,9 +115,9 @@ export const AvailableDeliveries = () => {
                     </div>
 
                     <div className="flex items-start space-x-2 text-xs">
-                      <MapPin className="w-4 h-4 text-delivery-500 flex-shrink-0 mt-0.5" />
+                      <MapPin className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-[#79747E]">Customer Destination</span>
+                        <span className="text-[10px] uppercase font-bold text-[#79747E]">Delivery Destination</span>
                         <p className="font-semibold text-[#1C1B1F] line-clamp-1">{order.deliveryAddress}</p>
                       </div>
                     </div>
@@ -123,24 +127,31 @@ export const AvailableDeliveries = () => {
                     <span className="text-[10px] uppercase font-bold text-[#79747E] block mb-0.5">Package Items:</span>
                     <p className="text-[#49454F] line-clamp-2">{order.itemsSummary}</p>
                   </div>
+
+                  {/* Split Preview */}
+                  <div className="bg-emerald-50 rounded-xl p-2.5 text-[11px] text-emerald-900 mb-4 flex justify-between">
+                    <span>Your Payout: <strong>{formatNaira(1100)}</strong></span>
+                    <span className="text-emerald-700">Customer Total: {formatNaira(1500)}</span>
+                  </div>
                 </div>
 
                 <div className="pt-3 border-t border-neutral-100 flex items-center justify-between">
                   <span className="text-xs text-[#79747E] font-medium">
-                    {totalBidsOnOrder} {totalBidsOnOrder === 1 ? 'bid' : 'bids'} submitted
+                    {totalBidsOnOrder} {totalBidsOnOrder === 1 ? 'courier bid' : 'courier bids'}
                   </span>
 
                   {existingBid ? (
-                    <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold">
-                      Bid Placed: ${existingBid.fee.toFixed(2)}
+                    <span className="px-3 py-1.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold flex items-center space-x-1">
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Bid Submitted ({formatNaira(existingBid.fee)})</span>
                     </span>
                   ) : (
                     <button
                       onClick={() => handleOpenBidModal(order)}
-                      className="px-4 py-2 bg-delivery-500 hover:bg-delivery-600 text-white rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center space-x-1"
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center space-x-1"
                     >
-                      <DollarSign className="w-3.5 h-3.5" />
-                      <span>Place Bid</span>
+                      <Bike className="w-3.5 h-3.5" />
+                      <span>Accept / Bid Trip</span>
                     </button>
                   )}
                 </div>
@@ -173,13 +184,13 @@ export const AvailableDeliveries = () => {
                       </span>
                     </div>
                     <p className="text-xs text-[#79747E] mt-1">
-                      Your ETA: {bid.etaMinutes} mins • Vehicle: {bid.vehicleType}
+                      Your ETA: {bid.etaMinutes} mins • Vehicle: {bid.vehicleType || 'Boxer 150cc'}
                     </p>
                   </div>
 
                   <div className="text-right">
-                    <span className="text-base font-extrabold text-[#1C1B1F]">${bid.fee.toFixed(2)}</span>
-                    <span className="text-[10px] text-[#79747E] block">offered fee</span>
+                    <span className="text-base font-black text-emerald-700">{formatNaira(bid.fee || 1500)}</span>
+                    <span className="text-[10px] text-[#79747E] block">Trip delivery fee</span>
                   </div>
                 </div>
               ))}
@@ -204,31 +215,42 @@ export const AvailableDeliveries = () => {
               </button>
             </div>
 
-            <p className="text-xs text-[#79747E] mb-4">
-              Enter your proposed delivery price and pickup-to-dropoff ETA.
-            </p>
+            <div className="bg-emerald-50 rounded-2xl p-3 text-xs text-emerald-900 mb-4 space-y-1">
+              <div className="flex justify-between">
+                <span>Standard Delivery Fee:</span>
+                <span className="font-bold">{formatNaira(1500)}</span>
+              </div>
+              <div className="flex justify-between text-emerald-700 font-semibold">
+                <span>Driver Payout (You):</span>
+                <span>{formatNaira(1100)}</span>
+              </div>
+              <div className="flex justify-between text-neutral-400 text-[10px]">
+                <span>ChopConnect Platform:</span>
+                <span>{formatNaira(400)}</span>
+              </div>
+            </div>
 
             <form onSubmit={handleBidSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-[#49454F] mb-1">Proposed Delivery Fee ($) *</label>
+                <label className="block text-xs font-bold text-[#49454F] mb-1">Customer Delivery Charge (₦) *</label>
                 <input
                   type="number"
-                  step="0.25"
+                  step="100"
                   required
                   value={fee}
                   onChange={(e) => setFee(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2D7CF] text-sm focus:ring-2 focus:ring-delivery-500 font-bold"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2D7CF] text-sm focus:ring-2 focus:ring-emerald-500 font-bold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#49454F] mb-1">Estimated Delivery Time (mins) *</label>
+                <label className="block text-xs font-bold text-[#49454F] mb-1">Estimated ETA (minutes) *</label>
                 <input
                   type="number"
                   required
                   value={etaMinutes}
                   onChange={(e) => setEtaMinutes(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2D7CF] text-sm focus:ring-2 focus:ring-delivery-500 font-bold"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2D7CF] text-sm focus:ring-2 focus:ring-emerald-500 font-bold"
                 />
               </div>
 
@@ -242,7 +264,7 @@ export const AvailableDeliveries = () => {
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2.5 bg-delivery-500 hover:bg-delivery-600 text-white rounded-xl text-xs font-bold shadow-md"
+                  className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md"
                 >
                   Submit Bid
                 </button>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useApp } from '../../context/AppContext';
+import { useApp, formatNaira } from '../../context/AppContext';
 import { 
   ShoppingBag, 
   Trash2, 
@@ -10,34 +10,57 @@ import {
   ArrowLeft, 
   ArrowRight, 
   CheckCircle2, 
-  FileText 
+  FileText,
+  CreditCard,
+  ShieldCheck,
+  Phone,
+  Navigation
 } from 'lucide-react';
+import { PaymentModal } from '../../components/PaymentModal';
+import { LocationVerifier } from '../../components/LocationVerifier';
 
 export const Cart = () => {
-  const { cart, updateCartQuantity, removeFromCart, clearCart, placeOrder, currentUser, showToast } = useApp();
+  const { 
+    cart, 
+    updateCartQuantity, 
+    removeFromCart, 
+    clearCart, 
+    placeOrder, 
+    currentUser, 
+    verifiedLocation,
+    showToast 
+  } = useApp();
   const navigate = useNavigate();
 
-  const [deliveryAddress, setDeliveryAddress] = useState(currentUser?.address || '14 Metro Boulevard, Apt 4B, Downtown');
+  const [deliveryAddress, setDeliveryAddress] = useState(verifiedLocation?.streetAddress || currentUser?.address || '14 Admiralty Way, Lekki Phase 1, Lagos');
   const [notes, setNotes] = useState('');
-  const [isPlacing, setIsPlacing] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const estimatedDelivery = cart.length > 0 ? 4.50 : 0.00;
-  const total = subtotal + estimatedDelivery;
+  const deliveryFee = cart.length > 0 ? 1500 : 0; // Customer pays ₦1,500 delivery fee
+  const total = subtotal + deliveryFee;
 
-  const handleCheckout = () => {
+  const handleInitiatePayment = () => {
     if (cart.length === 0) {
       showToast("Your cart is empty!");
       return;
     }
     if (!deliveryAddress.trim()) {
-      showToast("Please provide a delivery address.");
+      showToast("Please enter a verified delivery address.");
       return;
     }
+    setIsPaymentOpen(true);
+  };
 
-    setIsPlacing(true);
-    const order = placeOrder({ deliveryAddress, notes });
-    setIsPlacing(false);
+  const handlePaymentSuccess = ({ method, reference }) => {
+    setIsPaymentOpen(false);
+    const order = placeOrder({ 
+      deliveryAddress, 
+      notes,
+      paymentMethod: method,
+      transactionRef: reference 
+    });
     if (order) {
       navigate('/buyer/orders');
     }
@@ -51,14 +74,14 @@ export const Cart = () => {
         </div>
         <h2 className="text-2xl font-extrabold text-[#1C1B1F]">Your cart is empty</h2>
         <p className="text-xs text-[#79747E] mt-1 max-w-sm mx-auto">
-          Explore delicious African delicacies and add items to your cart.
+          Explore delicious Nigerian delicacies, party jollof, suya, and soups.
         </p>
         <Link
           to="/buyer"
           className="inline-flex items-center space-x-2 mt-6 px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl shadow-md transition-all text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Browse Marketplace</span>
+          <span>Browse Food Menu</span>
         </Link>
       </div>
     );
@@ -71,7 +94,7 @@ export const Cart = () => {
           <Link to="/buyer" className="p-2 bg-white rounded-xl border border-[#E2D7CF] text-[#49454F] hover:text-[#1C1B1F]">
             <ArrowLeft className="w-4 h-4" />
           </Link>
-          <h1 className="text-2xl font-extrabold text-[#1C1B1F]">Shopping Cart</h1>
+          <h1 className="text-2xl font-extrabold text-[#1C1B1F]">Order Checkout</h1>
         </div>
         <button
           onClick={clearCart}
@@ -101,7 +124,7 @@ export const Cart = () => {
                   <h3 className="font-bold text-sm text-[#1C1B1F] line-clamp-1">{item.name}</h3>
                   <p className="text-xs text-[#79747E]">{item.sellerName}</p>
                   <p className="text-sm font-extrabold text-brand-600 mt-1">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {formatNaira(item.price * item.quantity)}
                   </p>
                 </div>
               </div>
@@ -132,67 +155,117 @@ export const Cart = () => {
             </div>
           ))}
 
-          {/* Delivery Details Section */}
+          {/* Delivery Details Section with GPS Verification */}
           <div className="bg-white rounded-3xl p-6 border border-[#E2D7CF] shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-[#1C1B1F] flex items-center space-x-2">
-              <MapPin className="w-4 h-4 text-brand-500" />
-              <span>Delivery Destination</span>
-            </h3>
-            <input
-              type="text"
-              value={deliveryAddress}
-              onChange={(e) => setDeliveryAddress(e.target.value)}
-              placeholder="Enter your street address, apartment, or landmark"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#E2D7CF] text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-[#1C1B1F] flex items-center space-x-2">
+                <MapPin className="w-4 h-4 text-brand-500" />
+                <span>Verified Delivery Destination</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsLocationOpen(true)}
+                className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center space-x-1"
+              >
+                <Navigation className="w-3 h-3" />
+                <span>Change / GPS Verify</span>
+              </button>
+            </div>
+
+            <div className="relative">
+              <input
+                type="text"
+                value={deliveryAddress}
+                onChange={(e) => setDeliveryAddress(e.target.value)}
+                placeholder="Enter street address, apartment, or landmark in Lagos or Abuja"
+                className="w-full px-4 py-3 rounded-xl border border-[#E2D7CF] text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+              <div className="mt-2 flex items-center space-x-2 text-[11px] text-emerald-700 font-semibold bg-emerald-50 px-3 py-1.5 rounded-lg">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Verified Area: {verifiedLocation.area}, {verifiedLocation.city}</span>
+              </div>
+            </div>
 
             <h3 className="text-sm font-bold text-[#1C1B1F] flex items-center space-x-2 pt-2">
               <FileText className="w-4 h-4 text-brand-500" />
-              <span>Kitchen & Delivery Instructions (Optional)</span>
+              <span>Special Kitchen / Courier Instructions</span>
             </h3>
             <textarea
               rows="2"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Please add extra pepper sauce; ring the doorbell on arrival."
+              placeholder="e.g. Please include extra spicy yaji pepper sauce; call +234 802 476 4090 at security gate."
               className="w-full px-4 py-2 rounded-xl border border-[#E2D7CF] text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
         </div>
 
-        {/* Order Summary & Checkout */}
+        {/* Order Summary & Payment Button */}
         <div className="bg-white rounded-3xl p-6 border border-[#E2D7CF] shadow-sm h-fit space-y-4">
           <h2 className="text-base font-extrabold text-[#1C1B1F]">Order Summary</h2>
 
-          <div className="space-y-2.5 text-sm text-[#49454F] pb-4 border-b border-neutral-100">
+          <div className="space-y-3 text-sm text-[#49454F] pb-4 border-b border-neutral-100">
             <div className="flex justify-between">
-              <span>Items Subtotal</span>
-              <span className="font-semibold">${subtotal.toFixed(2)}</span>
+              <span>Food Subtotal</span>
+              <span className="font-semibold text-neutral-900">{formatNaira(subtotal)}</span>
             </div>
+            
+            {/* Delivery fee breakdown */}
             <div className="flex justify-between">
-              <span>Estimated Delivery Fee</span>
-              <span className="font-semibold">${estimatedDelivery.toFixed(2)}</span>
+              <span>Express Delivery Fee</span>
+              <span className="font-bold text-neutral-900">{formatNaira(deliveryFee)}</span>
             </div>
-            <p className="text-[11px] text-[#79747E]">
-              * Couriers will submit competitive bids once the kitchen accepts your order.
-            </p>
+            <div className="bg-neutral-50 rounded-xl p-2.5 text-[11px] text-neutral-600 space-y-1">
+              <div className="flex justify-between">
+                <span>Driver receives:</span>
+                <span className="font-bold text-emerald-700">{formatNaira(1100)}</span>
+              </div>
+              <div className="flex justify-between text-neutral-400">
+                <span>ChopConnect platform fee:</span>
+                <span>{formatNaira(400)}</span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex justify-between items-center text-lg font-extrabold text-[#1C1B1F]">
-            <span>Total</span>
-            <span className="text-brand-600">${total.toFixed(2)}</span>
+          <div className="flex justify-between items-center text-lg font-black text-[#1C1B1F]">
+            <span>Total Payable</span>
+            <span className="text-brand-600 text-xl">{formatNaira(total)}</span>
           </div>
 
           <button
-            onClick={handleCheckout}
-            disabled={isPlacing}
-            className="w-full py-3.5 bg-brand-500 hover:bg-brand-600 active:scale-[0.99] text-white font-bold rounded-2xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm"
+            onClick={handleInitiatePayment}
+            className="w-full py-4 bg-brand-500 hover:bg-brand-600 active:scale-[0.99] text-white font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center space-x-2 text-sm"
           >
-            <span>{isPlacing ? 'Placing Order...' : 'Place Order & Request Bids'}</span>
-            <ArrowRight className="w-4 h-4" />
+            <CreditCard className="w-4 h-4" />
+            <span>Pay with Mastercard or Transfer</span>
           </button>
+
+          <div className="pt-2 text-center text-xs text-neutral-500 flex items-center justify-center space-x-1">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>Secured Nigerian Checkout</span>
+          </div>
+
+          <div className="pt-2 border-t border-neutral-100 text-center text-[11px] text-neutral-500">
+            Order Help: <a href="tel:+2348024764090" className="font-bold text-brand-600">+234 802 476 4090</a>
+          </div>
         </div>
       </div>
+
+      {/* Payment Gateway Modal */}
+      <PaymentModal
+        isOpen={isPaymentOpen}
+        onClose={() => setIsPaymentOpen(false)}
+        totalAmount={total}
+        onPaymentSuccess={handlePaymentSuccess}
+        customerName={currentUser?.name}
+        customerPhone={currentUser?.phone || "+234 802 476 4090"}
+      />
+
+      {/* Location Verifier */}
+      <LocationVerifier
+        isOpen={isLocationOpen}
+        onClose={() => setIsLocationOpen(false)}
+      />
     </div>
   );
 };

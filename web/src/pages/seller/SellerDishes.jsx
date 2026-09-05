@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { useApp } from '../../context/AppContext';
+import { useApp, formatNaira } from '../../context/AppContext';
 import { 
   Plus, 
   Edit3, 
   Trash2, 
   Clock, 
-  DollarSign, 
   Check, 
   X, 
-  PlusCircle,
-  ToggleLeft,
+  PlusCircle, 
+  ToggleLeft, 
   ToggleRight,
-  Sparkles
+  Sparkles,
+  Percent
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -80,6 +80,7 @@ export const SellerDishes = () => {
         prepTimeMinutes: parseInt(prepTimeMinutes, 10),
         image
       });
+      showToast("Dish updated successfully!");
     } else {
       addFood({
         name,
@@ -89,29 +90,31 @@ export const SellerDishes = () => {
         prepTimeMinutes: parseInt(prepTimeMinutes, 10),
         image
       });
+      showToast("New dish added to menu!");
     }
-
     setModalOpen(false);
   };
 
+  const priceNum = parseFloat(price) || 0;
+  const vendorTakeHome = Math.round(priceNum * 0.95);
+  const platformFee = Math.round(priceNum * 0.05);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-12">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#1C1B1F]">Menu & Dish Management</h1>
-          <p className="text-xs text-[#79747E]">Add, edit, or adjust pricing and instant availability of your dishes</p>
+          <h1 className="text-2xl font-extrabold text-[#1C1B1F]">Manage Kitchen Dishes</h1>
+          <p className="text-xs text-[#79747E]">Set prices in Naira (₦) • 5% platform commission automatically deducted upon sale</p>
         </div>
-
         <button
           onClick={openAddModal}
-          className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-2xl text-xs font-bold shadow-md flex items-center space-x-2"
+          className="px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-2xl text-xs font-bold shadow-md flex items-center space-x-1.5 transition-all"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Add New Dish</span>
         </button>
       </div>
 
-      {/* Dish List */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {foods.map((food) => (
           <div
@@ -120,12 +123,8 @@ export const SellerDishes = () => {
           >
             <div>
               <div className="relative h-44 w-full bg-neutral-100">
-                <img
-                  src={food.image}
-                  alt={food.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-3 left-3 bg-brand-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                <img src={food.image || "/food_jollof_1788517799135.jpg"} alt={food.name} className="w-full h-full object-cover" />
+                <div className="absolute top-3 left-3 bg-brand-500 text-white px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase shadow-sm">
                   {food.category}
                 </div>
                 <button
@@ -136,7 +135,7 @@ export const SellerDishes = () => {
                       : 'bg-black/60 text-white'
                   }`}
                 >
-                  {food.isAvailable ? 'Available' : 'Unavailable'}
+                  {food.isAvailable ? 'Active' : 'Hidden'}
                 </button>
               </div>
 
@@ -144,10 +143,16 @@ export const SellerDishes = () => {
                 <div className="flex justify-between items-start">
                   <h3 className="font-bold text-sm text-[#1C1B1F] line-clamp-1">{food.name}</h3>
                   <span className="font-black text-sm text-brand-600 ml-2">
-                    ${food.price.toFixed(2)}
+                    {formatNaira(food.price)}
                   </span>
                 </div>
                 <p className="text-xs text-[#79747E] line-clamp-2 mt-1">{food.description}</p>
+                
+                <div className="bg-neutral-50 rounded-xl p-2 mt-2 text-[10px] text-neutral-600 flex justify-between">
+                  <span>95% Payout: <strong>{formatNaira(food.price * 0.95)}</strong></span>
+                  <span className="text-neutral-400">5% Fee: {formatNaira(food.price * 0.05)}</span>
+                </div>
+
                 <div className="flex items-center space-x-2 text-[11px] text-[#79747E] mt-2 font-medium">
                   <Clock className="w-3.5 h-3.5" />
                   <span>{food.prepTimeMinutes} mins preparation time</span>
@@ -165,7 +170,7 @@ export const SellerDishes = () => {
                 ) : (
                   <ToggleLeft className="w-5 h-5 text-neutral-400" />
                 )}
-                <span>{food.isAvailable ? 'Active' : 'Hidden'}</span>
+                <span>{food.isAvailable ? 'Active on Menu' : 'Hidden'}</span>
               </button>
 
               <div className="flex items-center space-x-2">
@@ -213,23 +218,28 @@ export const SellerDishes = () => {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Egusi Soup with Pounded Yam"
+                  placeholder="e.g. Egusi Soup with Pounded Yam & Goat Meat"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2D7CF] text-sm focus:ring-2 focus:ring-brand-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#49454F] mb-1">Price ($) *</label>
+                  <label className="block text-xs font-bold text-[#49454F] mb-1">Selling Price (₦) *</label>
                   <input
                     type="number"
-                    step="0.25"
+                    step="50"
                     required
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    placeholder="14.50"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2D7CF] text-sm focus:ring-2 focus:ring-brand-500"
+                    placeholder="e.g. 4500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2D7CF] text-sm focus:ring-2 focus:ring-brand-500 font-bold"
                   />
+                  {priceNum > 0 && (
+                    <div className="text-[10px] text-emerald-700 font-semibold mt-1">
+                      You earn: {formatNaira(vendorTakeHome)} (95%)
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -249,7 +259,7 @@ export const SellerDishes = () => {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2D7CF] text-sm bg-white focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2D7CF] text-sm bg-white focus:ring-2 focus:ring-brand-500 font-medium"
                 >
                   {CATEGORIES.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
@@ -263,7 +273,7 @@ export const SellerDishes = () => {
                   rows="3"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe ingredients, seasonings, and accompaniments..."
+                  placeholder="Describe ingredients, seasonings, meat cuts, and accompaniments..."
                   className="w-full px-3.5 py-2 rounded-xl border border-[#E2D7CF] text-xs focus:ring-2 focus:ring-brand-500"
                 />
               </div>

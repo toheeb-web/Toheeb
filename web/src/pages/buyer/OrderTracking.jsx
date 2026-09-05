@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApp } from '../../context/AppContext';
+import { useApp, formatNaira } from '../../context/AppContext';
 import { OrderStatusStepper } from '../../components/OrderStatusStepper';
 import { 
   Package, 
@@ -12,19 +12,22 @@ import {
   Phone, 
   ChevronRight,
   MessageSquarePlus,
-  ShieldCheck
+  ShieldCheck,
+  CreditCard,
+  Building2,
+  MessageCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const OrderTracking = () => {
   const { orders, bids, acceptRiderBid, currentUser, addReview } = useApp();
-  const [selectedOrderId, setSelectedOrderId] = useState(101);
+  const [selectedOrderId, setSelectedOrderId] = useState(orders[0]?.id || 101);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [reviewTarget, setReviewTarget] = useState('SELLER'); // 'SELLER' or 'RIDER'
 
-  const buyerOrders = orders.filter(o => o.buyerId === currentUser.id || !o.buyerId);
+  const buyerOrders = orders.filter(o => o.buyerId === currentUser?.id || !o.buyerId);
   const activeOrder = buyerOrders.find(o => o.id === selectedOrderId) || buyerOrders[0];
   const orderBids = bids.filter(b => b.orderId === activeOrder?.id);
 
@@ -35,7 +38,7 @@ export const OrderTracking = () => {
       orderId: activeOrder.id,
       targetType: reviewTarget,
       targetId: reviewTarget === 'SELLER' ? activeOrder.sellerId : (activeOrder.riderId || 3),
-      targetName: reviewTarget === 'SELLER' ? activeOrder.sellerName : (activeOrder.riderName || "Tunde Swift"),
+      targetName: reviewTarget === 'SELLER' ? activeOrder.sellerName : (activeOrder.riderName || "Tunde Express Dispatch"),
       rating: reviewRating,
       comment: reviewComment
     });
@@ -55,7 +58,7 @@ export const OrderTracking = () => {
           to="/buyer"
           className="inline-block mt-4 px-6 py-2.5 bg-brand-500 text-white font-bold text-xs rounded-xl shadow-md"
         >
-          Go to Marketplace
+          Go to Food Menu
         </Link>
       </div>
     );
@@ -66,7 +69,7 @@ export const OrderTracking = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-[#1C1B1F]">Order Tracking & Live Dispatch</h1>
-          <p className="text-xs text-[#79747E]">Monitor food prep and pick from competing courier delivery bids</p>
+          <p className="text-xs text-[#79747E]">Monitor food prep in real time and select your verified dispatch rider</p>
         </div>
 
         {/* Order Selector Pills */}
@@ -104,9 +107,16 @@ export const OrderTracking = () => {
                     {activeOrder.sellerName}
                   </h2>
                 </div>
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-brand-50 text-brand-700 border border-brand-200">
-                  {activeOrder.status.replace(/_/g, ' ')}
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-brand-50 text-brand-700 border border-brand-200">
+                    {activeOrder.status.replace(/_/g, ' ')}
+                  </span>
+                  <span className="text-[10px] text-emerald-600 font-bold mt-1">
+                    {activeOrder.paymentMethod === 'CARD' && '💳 Mastercard Paid'}
+                    {activeOrder.paymentMethod === 'TRANSFER' && '🏦 NIP Bank Transfer Confirmed'}
+                    {(!activeOrder.paymentMethod || activeOrder.paymentMethod === 'COD') && '💵 Cash on Delivery'}
+                  </span>
+                </div>
               </div>
 
               {/* Visual Stepper */}
@@ -116,7 +126,7 @@ export const OrderTracking = () => {
                 <div className="flex items-start space-x-2 text-[#49454F]">
                   <MapPin className="w-4 h-4 text-brand-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold text-[#1C1B1F]">Delivery Address</span>
+                    <span className="font-bold text-[#1C1B1F]">Verified Delivery Location</span>
                     <p className="text-[#79747E] mt-0.5">{activeOrder.deliveryAddress}</p>
                   </div>
                 </div>
@@ -137,20 +147,20 @@ export const OrderTracking = () => {
               <div className="flex justify-between items-center mb-3">
                 <div>
                   <h3 className="text-base font-extrabold text-[#1C1B1F] flex items-center space-x-2">
-                    <Bike className="w-5 h-5 text-delivery-500" />
-                    <span>Courier Bids for this Delivery</span>
+                    <Bike className="w-5 h-5 text-emerald-600" />
+                    <span>Nigerian Couriers Available for this Order</span>
                   </h3>
                   <p className="text-xs text-[#79747E] mt-0.5">
-                    Couriers compete to offer the best price and fastest ETA. Select your preferred rider.
+                    Select your preferred rider. Standard delivery: ₦1,500 (₦1,100 to courier, ₦400 platform fee).
                   </p>
                 </div>
               </div>
 
               {orderBids.length === 0 ? (
-                <div className="p-6 text-center bg-delivery-50/50 rounded-2xl border border-delivery-100">
-                  <Clock className="w-6 h-6 text-delivery-500 mx-auto mb-1 animate-pulse" />
-                  <p className="text-xs font-bold text-delivery-700">Awaiting nearby couriers to place bids...</p>
-                  <p className="text-[11px] text-[#79747E] mt-0.5">Bids usually arrive in 1-2 minutes.</p>
+                <div className="p-6 text-center bg-brand-50/40 rounded-2xl border border-brand-100">
+                  <Clock className="w-6 h-6 text-brand-500 mx-auto mb-1 animate-pulse" />
+                  <p className="text-xs font-bold text-brand-900">Awaiting nearby Lagos couriers to place bids...</p>
+                  <p className="text-[11px] text-[#79747E] mt-0.5">Bids arrive in real-time based on your GPS location.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -162,39 +172,39 @@ export const OrderTracking = () => {
                         className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
                           isAssigned
                             ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-200'
-                            : 'bg-white border-[#E2D7CF] hover:border-delivery-300'
+                            : 'bg-white border-[#E2D7CF] hover:border-brand-300'
                         }`}
                       >
                         <div className="flex items-center space-x-3.5">
-                          <div className="w-12 h-12 rounded-2xl bg-delivery-100 text-delivery-600 flex items-center justify-center font-bold text-sm">
+                          <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-sm">
                             {bid.riderName.slice(0, 2).toUpperCase()}
                           </div>
                           <div>
                             <div className="flex items-center space-x-2">
                               <h4 className="font-bold text-sm text-[#1C1B1F]">{bid.riderName}</h4>
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                                {bid.vehicleType}
+                                {bid.vehicleType || "Boxer 150cc"}
                               </span>
                             </div>
                             <div className="flex items-center space-x-2 text-xs text-[#79747E] mt-0.5">
                               <span className="flex items-center font-bold text-amber-600">
                                 <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-500 mr-0.5" />
-                                {bid.riderRating}
+                                {bid.riderRating || 4.9}
                               </span>
                               <span>•</span>
-                              <span>{bid.completedDeliveries} completed</span>
+                              <span>{bid.completedDeliveries || 480} completed</span>
                               <span>•</span>
-                              <span className="font-semibold text-emerald-600">{bid.etaMinutes} mins ETA</span>
+                              <span className="font-semibold text-emerald-600">{bid.etaMinutes || 20} mins ETA</span>
                             </div>
                           </div>
                         </div>
 
                         <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-end">
                           <div className="text-right">
-                            <span className="text-base font-extrabold text-[#1C1B1F]">
-                              ${bid.fee.toFixed(2)}
+                            <span className="text-base font-black text-[#1C1B1F]">
+                              {formatNaira(bid.fee || 1500)}
                             </span>
-                            <span className="text-[10px] text-[#79747E] block">delivery fee</span>
+                            <span className="text-[10px] text-[#79747E] block">fixed delivery fee</span>
                           </div>
 
                           {isAssigned ? (
@@ -205,9 +215,9 @@ export const OrderTracking = () => {
                           ) : (
                             <button
                               onClick={() => acceptRiderBid(activeOrder.id, bid.id)}
-                              className="px-4 py-2 bg-delivery-500 hover:bg-delivery-600 text-white rounded-xl text-xs font-bold shadow-sm transition-all"
+                              className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold shadow-sm transition-all"
                             >
-                              Accept Bid
+                              Accept Courier
                             </button>
                           )}
                         </div>
@@ -220,23 +230,32 @@ export const OrderTracking = () => {
 
             {/* Assigned Courier Details Card */}
             {activeOrder.riderName && (
-              <div className="bg-white rounded-3xl p-5 border border-emerald-200 bg-emerald-50/30 shadow-sm flex items-center justify-between">
+              <div className="bg-white rounded-3xl p-5 border border-emerald-200 bg-emerald-50/40 shadow-sm flex items-center justify-between">
                 <div className="flex items-center space-x-3.5">
                   <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold">
                     <Bike className="w-6 h-6" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Active Courier</span>
+                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Active Express Courier</span>
                     <h4 className="font-bold text-sm text-[#1C1B1F]">{activeOrder.riderName}</h4>
-                    <p className="text-xs text-[#79747E]">Estimated Delivery: {activeOrder.riderEta || '18 mins'}</p>
+                    <p className="text-xs text-[#79747E]">Estimated Delivery ETA: {activeOrder.riderEta || '18-25 mins'}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
                   <a
-                    href="tel:+15553456789"
+                    href="https://wa.me/2348024764090?text=Hello%20Courier,%20following%20up%20on%20my%20order!"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm transition-colors"
+                    title="WhatsApp Courier"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="tel:+2348024764090"
                     className="p-2.5 bg-white rounded-xl border border-emerald-200 text-emerald-700 hover:bg-emerald-50 shadow-sm transition-colors"
-                    title="Call Courier"
+                    title="Call Support / Courier (+234 802 476 4090)"
                   >
                     <Phone className="w-4 h-4" />
                   </a>
@@ -257,7 +276,7 @@ export const OrderTracking = () => {
                       {item.quantity}x {item.name}
                     </span>
                     <span className="font-bold text-[#1C1B1F]">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      {formatNaira(item.price * item.quantity)}
                     </span>
                   </div>
                 ))}
@@ -265,17 +284,27 @@ export const OrderTracking = () => {
 
               <div className="space-y-2 text-xs text-[#49454F]">
                 <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span className="font-semibold">${activeOrder.subtotal.toFixed(2)}</span>
+                  <span>Food Subtotal</span>
+                  <span className="font-semibold text-neutral-900">{formatNaira(activeOrder.subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery Fee</span>
-                  <span className="font-semibold">${activeOrder.deliveryFee.toFixed(2)}</span>
+                  <span className="font-semibold text-neutral-900">{formatNaira(activeOrder.deliveryFee)}</span>
                 </div>
-                <div className="flex justify-between pt-2 border-t border-neutral-100 font-extrabold text-sm text-[#1C1B1F]">
-                  <span>Total</span>
-                  <span className="text-brand-600">
-                    ${(activeOrder.subtotal + activeOrder.deliveryFee).toFixed(2)}
+                <div className="bg-neutral-50 rounded-xl p-2 text-[11px] text-neutral-600 space-y-0.5">
+                  <div className="flex justify-between">
+                    <span>Driver Payout:</span>
+                    <span className="font-bold text-emerald-700">{formatNaira(1100)}</span>
+                  </div>
+                  <div className="flex justify-between text-neutral-400">
+                    <span>Platform Service:</span>
+                    <span>{formatNaira(400)}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-neutral-100 font-black text-sm text-[#1C1B1F]">
+                  <span>Total Paid</span>
+                  <span className="text-brand-600 text-base">
+                    {formatNaira(activeOrder.subtotal + activeOrder.deliveryFee)}
                   </span>
                 </div>
               </div>
@@ -290,11 +319,15 @@ export const OrderTracking = () => {
               {/* Rate & Review Button */}
               <button
                 onClick={() => setReviewModalOpen(true)}
-                className="w-full py-2.5 bg-neutral-100 hover:bg-neutral-200 text-[#1C1B1F] rounded-xl text-xs font-bold transition-colors flex items-center justify-center space-x-1.5"
+                className="w-full py-3 bg-neutral-100 hover:bg-neutral-200 text-[#1C1B1F] rounded-xl text-xs font-bold transition-colors flex items-center justify-center space-x-1.5"
               >
                 <MessageSquarePlus className="w-4 h-4 text-amber-500" />
                 <span>Rate Kitchen or Courier</span>
               </button>
+
+              <div className="text-center pt-2 text-[11px] text-neutral-500">
+                Support: <a href="tel:+2348024764090" className="font-bold text-brand-600">+234 802 476 4090</a>
+              </div>
             </div>
           </div>
         </div>
@@ -305,7 +338,7 @@ export const OrderTracking = () => {
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-neutral-100">
             <h3 className="text-base font-extrabold text-[#1C1B1F] mb-1">Leave a Review</h3>
-            <p className="text-xs text-[#79747E] mb-4">Share your feedback to support local kitchens and couriers.</p>
+            <p className="text-xs text-[#79747E] mb-4">Share your feedback to support local Nigerian kitchens and couriers.</p>
 
             <form onSubmit={handleReviewSubmit} className="space-y-4">
               <div className="flex rounded-xl bg-neutral-100 p-1">
@@ -322,7 +355,7 @@ export const OrderTracking = () => {
                   type="button"
                   onClick={() => setReviewTarget('RIDER')}
                   className={`w-1/2 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    reviewTarget === 'RIDER' ? 'bg-white text-delivery-600 shadow-sm' : 'text-[#79747E]'
+                    reviewTarget === 'RIDER' ? 'bg-white text-emerald-600 shadow-sm' : 'text-[#79747E]'
                   }`}
                 >
                   Courier
@@ -358,7 +391,7 @@ export const OrderTracking = () => {
                   rows="3"
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
-                  placeholder="The food was hot and delicious..."
+                  placeholder="The food was hot, properly seasoned, and on time..."
                   className="w-full p-2.5 rounded-xl border border-[#E2D7CF] text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
                 />
               </div>

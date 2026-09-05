@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApp } from '../../context/AppContext';
+import { useApp, formatNaira } from '../../context/AppContext';
 import { 
   Search, 
   Star, 
@@ -7,11 +7,20 @@ import {
   Store, 
   Plus, 
   MapPin, 
-  SlidersHorizontal,
-  ArrowRight,
-  Flame
+  ArrowRight, 
+  Flame,
+  Users,
+  ShieldCheck,
+  Phone,
+  MessageCircle,
+  Download,
+  CheckCircle2,
+  Navigation
 } from 'lucide-react';
 import { FoodDetailModal } from './FoodDetailModal';
+import { RegisteredUsersDirectory } from '../../components/RegisteredUsersDirectory';
+import { LocationVerifier } from '../../components/LocationVerifier';
+import { InstallAppModal } from '../../components/InstallAppModal';
 import { Link } from 'react-router-dom';
 
 const CATEGORIES = [
@@ -24,10 +33,15 @@ const CATEGORIES = [
 ];
 
 export const Marketplace = () => {
-  const { foods, sellers, addToCart, cart } = useApp();
+  const { foods, sellers, users, addToCart, cart, verifiedLocation } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Dishes');
   const [selectedFood, setSelectedFood] = useState(null);
+  const [directoryOpen, setDirectoryOpen] = useState(false);
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [installOpen, setInstallOpen] = useState(false);
+
+  const onlineCount = users.filter(u => u.isOnline).length;
 
   // Filter foods
   const filteredFoods = foods.filter(food => {
@@ -35,7 +49,8 @@ export const Marketplace = () => {
     const matchesSearch = 
       food.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       food.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      food.sellerName.toLowerCase().includes(searchQuery.toLowerCase());
+      food.sellerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (food.location && food.location.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 
@@ -44,20 +59,65 @@ export const Marketplace = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-12">
       
-      {/* Hero Banner with ChopConnect visual branding */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-brand-900 via-brand-800 to-brand-600 text-white p-6 sm:p-10 mb-8 shadow-xl">
-        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-brand-500/20 rounded-full blur-3xl" />
-        <div className="relative z-10 max-w-xl">
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-brand-100 text-xs font-semibold mb-3 border border-white/15">
-            <Flame className="w-3.5 h-3.5 text-amber-300" />
-            <span>Peer-to-Peer Food Delivery</span>
+      {/* Eye-catching Hero Banner with Nigerian food vibes & Live presence */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#B92B0C] via-[#E23E1D] to-[#F59E0B] text-white p-6 sm:p-10 mb-8 shadow-2xl">
+        <div className="absolute -right-10 -bottom-10 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
+        <div className="relative z-10 max-w-2xl">
+          
+          {/* Live Status Indicators */}
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <button
+              onClick={() => setDirectoryOpen(true)}
+              className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-black/30 backdrop-blur-md text-emerald-300 text-xs font-bold border border-white/20 hover:bg-black/40 transition-colors"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>{onlineCount} Members Online Now</span>
+            </button>
+
+            <button
+              onClick={() => setLocationOpen(true)}
+              className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-semibold border border-white/20 hover:bg-white/30 transition-colors"
+            >
+              <MapPin className="w-3.5 h-3.5 text-amber-200" />
+              <span>{verifiedLocation.area}, {verifiedLocation.city}</span>
+            </button>
+
+            <button
+              onClick={() => setInstallOpen(true)}
+              className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-neutral-900 text-amber-300 text-xs font-bold hover:bg-black transition-colors"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Install App</span>
+            </button>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
-            Authentic African Flavors Delivered Fresh & Hot
+
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+            Naija Chop Delivered Hot to Your Doorstep
           </h1>
-          <p className="text-xs sm:text-sm text-brand-100 mt-2 font-normal">
-            Browse kitchens, choose your meals, and pick your preferred rider with transparent, competing bids.
+          <p className="text-xs sm:text-sm text-white/90 mt-2.5 font-medium leading-relaxed">
+            Order authentic Party Jollof, spicy flame-grilled Suya, and fresh Pounded Yam from verified Nigerian kitchens. Pay securely with Mastercard or Instant Bank Transfer.
           </p>
+
+          {/* Quick Helpline Callout */}
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <a
+              href="https://wa.me/2348024764090?text=Hello%20ChopConnect,%20I%20want%20to%20order%20food!"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center space-x-2 shadow-md transition-all"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>WhatsApp Support (+234 802 476 4090)</span>
+            </a>
+
+            <button
+              onClick={() => setDirectoryOpen(true)}
+              className="px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white font-bold rounded-xl text-xs flex items-center space-x-2 backdrop-blur-md border border-white/20 transition-all"
+            >
+              <Users className="w-4 h-4" />
+              <span>View Registered People & Riders</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -70,7 +130,7 @@ export const Marketplace = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search jollof, suya, egusi, puff puff, or kitchens..."
+              placeholder="Search jollof, suya, egusi, puff puff, meat pies, or kitchens in Lagos & Abuja..."
               className="w-full pl-11 pr-4 py-3 rounded-2xl border border-[#E2D7CF] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm"
             />
           </div>
@@ -94,11 +154,20 @@ export const Marketplace = () => {
         </div>
       </div>
 
-      {/* Popular Kitchens Section */}
+      {/* Verified Nigerian Kitchens & Restaurants */}
       <div className="mb-10">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-extrabold text-[#1C1B1F]">Popular Kitchens & Grills</h2>
-          <span className="text-xs font-semibold text-brand-600">Verified Sellers</span>
+          <div>
+            <h2 className="text-lg font-extrabold text-[#1C1B1F]">Verified Kitchens & Grills</h2>
+            <p className="text-xs text-[#79747E]">Cooks, home chefs & restaurants charging 5% platform commission</p>
+          </div>
+          <button
+            onClick={() => setDirectoryOpen(true)}
+            className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center space-x-1"
+          >
+            <span>All Sellers & Couriers ({users.length})</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {sellers.map(seller => (
@@ -109,31 +178,37 @@ export const Marketplace = () => {
               <img 
                 src={seller.image} 
                 alt={seller.businessName} 
-                className="w-16 h-16 rounded-2xl object-cover flex-shrink-0"
+                className="w-16 h-16 rounded-2xl object-cover flex-shrink-0 ring-1 ring-neutral-200"
               />
               <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-bold text-[#1C1B1F] truncate">{seller.businessName}</h3>
+                <div className="flex items-center space-x-1">
+                  <h3 className="text-sm font-bold text-[#1C1B1F] truncate">{seller.businessName}</h3>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                </div>
                 <p className="text-xs text-[#79747E] truncate">{seller.cuisineType}</p>
                 <div className="flex items-center space-x-2 mt-1 text-xs">
                   <span className="flex items-center font-bold text-amber-600">
                     <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-500 mr-0.5" />
                     {seller.rating}
                   </span>
-                  <span className="text-[#79747E]">({seller.reviewCount} reviews)</span>
+                  <span className="text-[#79747E]">({seller.reviewCount} orders)</span>
                 </div>
+                <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full inline-block mt-1">
+                  5% Commission Partner
+                </span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Food Items Grid */}
+      {/* Food Items Grid with Naira Currency */}
       <div>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-extrabold text-[#1C1B1F]">
-            {selectedCategory === 'All Dishes' ? 'Explore Menu' : selectedCategory}
+            {selectedCategory === 'All Dishes' ? 'Explore Fresh Menu' : selectedCategory}
           </h2>
-          <span className="text-xs text-[#79747E] font-medium">{filteredFoods.length} items available</span>
+          <span className="text-xs text-[#79747E] font-medium">{filteredFoods.length} dishes ready to order</span>
         </div>
 
         {filteredFoods.length === 0 ? (
@@ -157,7 +232,7 @@ export const Marketplace = () => {
                       alt={food.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-bold text-[#1C1B1F] flex items-center space-x-1 shadow-sm">
+                    <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-bold text-[#1C1B1F] flex items-center space-x-1 shadow-sm">
                       <Clock className="w-3 h-3 text-[#79747E]" />
                       <span>{food.prepTimeMinutes}m</span>
                     </div>
@@ -181,20 +256,21 @@ export const Marketplace = () => {
                   </div>
                 </div>
 
-                {/* Footer Price & Add Button */}
+                {/* Footer Price in Naira & Add Button */}
                 <div className="px-4 pb-4 pt-1 flex items-center justify-between border-t border-neutral-100 mt-2">
-                  <span className="text-base font-extrabold text-[#1C1B1F]">
-                    ${food.price.toFixed(2)}
+                  <span className="text-base font-black text-brand-600">
+                    {formatNaira(food.price)}
                   </span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       addToCart(food, 1);
                     }}
-                    className="p-2.5 bg-brand-50 hover:bg-brand-500 text-brand-600 hover:text-white rounded-2xl transition-all shadow-sm flex items-center justify-center"
+                    className="p-2.5 bg-brand-50 hover:bg-brand-500 text-brand-600 hover:text-white rounded-2xl transition-all shadow-sm flex items-center justify-center font-bold text-xs"
                     title="Add to Cart"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4 mr-1" />
+                    <span>Order</span>
                   </button>
                 </div>
               </div>
@@ -208,13 +284,13 @@ export const Marketplace = () => {
         <div className="md:hidden fixed bottom-20 left-4 right-4 z-40">
           <Link
             to="/buyer/cart"
-            className="w-full bg-brand-500 text-white py-3 px-5 rounded-2xl shadow-xl flex items-center justify-between font-bold text-sm"
+            className="w-full bg-brand-500 hover:bg-brand-600 text-white py-3.5 px-5 rounded-2xl shadow-xl flex items-center justify-between font-bold text-sm"
           >
             <div className="flex items-center space-x-2">
-              <span className="bg-white/20 px-2 py-0.5 rounded-lg text-xs font-extrabold">
+              <span className="bg-white/20 px-2.5 py-0.5 rounded-lg text-xs font-black">
                 {cartCount} items
               </span>
-              <span>View Cart & Checkout</span>
+              <span>View Cart & Pay (Mastercard / Transfer)</span>
             </div>
             <ArrowRight className="w-4 h-4" />
           </Link>
@@ -228,6 +304,24 @@ export const Marketplace = () => {
           onClose={() => setSelectedFood(null)} 
         />
       )}
+
+      {/* Registered Members Directory Modal */}
+      <RegisteredUsersDirectory 
+        isOpen={directoryOpen}
+        onClose={() => setDirectoryOpen(false)}
+      />
+
+      {/* Location Verifier */}
+      <LocationVerifier
+        isOpen={locationOpen}
+        onClose={() => setLocationOpen(false)}
+      />
+
+      {/* Install App Modal */}
+      <InstallAppModal
+        isOpen={installOpen}
+        onClose={() => setInstallOpen(false)}
+      />
     </div>
   );
 };

@@ -1,0 +1,17 @@
+{
+  "short_name": "ChopConnect",
+  "name": "ChopConnect Nigeria - Food & Express Delivery",
+  "description": "Order delicious Nigerian cuisines, party jollof, suya, and get express peer delivery across Lagos and Abuja.",
+  "icons": [
+    {
+      "src": "/chopconnect_icon_1788517538782.jpg",
+      "type": "image/jpeg",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#FFFFFF",
+  "theme_color": "#E23E1D",
+  "display": "standalone",
+  "orientation": "portrait"
+}

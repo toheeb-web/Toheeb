@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Star, Clock, MapPin, Store, Plus, Minus, ShoppingBag } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { useApp, formatNaira } from '../../context/AppContext';
 
 export const FoodDetailModal = ({ food, onClose }) => {
   const { addToCart } = useApp();
@@ -54,7 +54,7 @@ export const FoodDetailModal = ({ food, onClose }) => {
               </div>
             </div>
             <span className="text-2xl font-black text-brand-600">
-              ${food.price.toFixed(2)}
+              {formatNaira(food.price)}
             </span>
           </div>
 
@@ -64,7 +64,7 @@ export const FoodDetailModal = ({ food, onClose }) => {
             <span>•</span>
             <span className="flex items-center text-[#79747E]">
               <MapPin className="w-3.5 h-3.5 mr-0.5" />
-              {food.location || "Market District"}
+              {food.location || "Lagos, Nigeria"}
             </span>
           </div>
 
@@ -99,7 +99,7 @@ export const FoodDetailModal = ({ food, onClose }) => {
             className="flex-1 py-3 bg-brand-500 hover:bg-brand-600 active:scale-[0.99] text-white font-bold rounded-2xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm"
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>Add to Cart • ${(food.price * quantity).toFixed(2)}</span>
+            <span>Add to Cart • {formatNaira(food.price * quantity)}</span>
           </button>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApp } from '../../context/AppContext';
+import { useApp, formatNaira } from '../../context/AppContext';
 import { 
   ClipboardList, 
   ChefHat, 
@@ -9,14 +9,15 @@ import {
   Clock, 
   MapPin, 
   Phone, 
-  Bike 
+  Bike,
+  ShieldCheck
 } from 'lucide-react';
 
 export const SellerOrders = () => {
   const { orders, updateOrderStatus, sellers, currentUser } = useApp();
   const [filter, setFilter] = useState('ALL');
 
-  const currentSeller = sellers.find(s => s.userId === currentUser.id) || sellers[0];
+  const currentSeller = sellers.find(s => s.userId === currentUser?.id) || sellers[0];
   const sellerOrders = orders.filter(o => o.sellerId === currentSeller?.id);
 
   const filteredOrders = sellerOrders.filter(order => {
@@ -33,13 +34,13 @@ export const SellerOrders = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-[#1C1B1F]">Incoming Kitchen Orders</h1>
-          <p className="text-xs text-[#79747E]">Accept orders, notify prep status, and alert courier dispatch</p>
+          <p className="text-xs text-[#79747E]">Accept orders, update food prep, and dispatch to verified Nigerian couriers</p>
         </div>
 
         {/* Filter Pills */}
         <div className="flex items-center space-x-2 overflow-x-auto w-full sm:w-auto pb-1">
           {[
-            { id: 'ALL', label: 'All' },
+            { id: 'ALL', label: 'All Orders' },
             { id: 'NEW', label: 'New Requests' },
             { id: 'KITCHEN', label: 'Cooking' },
             { id: 'READY', label: 'Courier Dispatch' },
@@ -64,11 +65,15 @@ export const SellerOrders = () => {
         <div className="bg-white rounded-3xl p-12 text-center border border-[#E2D7CF]">
           <ClipboardList className="w-12 h-12 text-[#79747E] mx-auto mb-2 opacity-50" />
           <h3 className="font-extrabold text-base text-[#1C1B1F]">No orders in this category</h3>
-          <p className="text-xs text-[#79747E] mt-1">Orders will appear here in real-time as customers check out.</p>
+          <p className="text-xs text-[#79747E] mt-1">Orders will appear here in real-time as customers place orders.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {filteredOrders.map((order) => {
+            const subtotal = order.subtotal || 0;
+            const commission = Math.round(subtotal * 0.05);
+            const netEarnings = subtotal - commission;
+
             return (
               <div
                 key={order.id}
@@ -76,10 +81,13 @@ export const SellerOrders = () => {
               >
                 {/* Left details */}
                 <div className="space-y-2 flex-1">
-                  <div className="flex items-center space-x-3">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-base font-extrabold text-[#1C1B1F]">Order #{order.id}</span>
                     <span className="text-xs font-bold px-3 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200">
                       {order.status.replace(/_/g, ' ')}
+                    </span>
+                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {order.paymentMethod === 'CARD' ? '💳 Mastercard' : order.paymentMethod === 'TRANSFER' ? '🏦 NIP Transfer' : '💵 Cash'}
                     </span>
                     <span className="text-xs text-[#79747E]">
                       {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -92,7 +100,7 @@ export const SellerOrders = () => {
 
                   {order.notes && (
                     <p className="text-xs text-amber-800 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 inline-block">
-                      Note: {order.notes}
+                      Special Note: {order.notes}
                     </p>
                   )}
 
@@ -103,10 +111,10 @@ export const SellerOrders = () => {
                     </span>
                     <span className="flex items-center">
                       <Phone className="w-3.5 h-3.5 mr-1 text-brand-500" />
-                      {order.buyerName} ({order.buyerPhone})
+                      {order.buyerName} ({order.buyerPhone || "+234 802 476 4090"})
                     </span>
                     {order.riderName && (
-                      <span className="flex items-center text-delivery-600 font-bold bg-delivery-50 px-2 py-0.5 rounded-lg border border-delivery-200">
+                      <span className="flex items-center text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
                         <Bike className="w-3.5 h-3.5 mr-1" />
                         Courier: {order.riderName}
                       </span>
@@ -117,9 +125,12 @@ export const SellerOrders = () => {
                 {/* Right Actions & Amount */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 pt-3 lg:pt-0 border-neutral-100">
                   <div className="text-left lg:text-right">
-                    <span className="text-xs text-[#79747E] block">Subtotal</span>
+                    <span className="text-[11px] text-[#79747E] block">Your 95% Net Payout</span>
                     <span className="text-xl font-black text-brand-600">
-                      ${order.subtotal.toFixed(2)}
+                      {formatNaira(netEarnings)}
+                    </span>
+                    <span className="text-[10px] text-neutral-400 block">
+                      Gross: {formatNaira(subtotal)} • 5% Fee: {formatNaira(commission)}
                     </span>
                   </div>
 
@@ -156,7 +167,7 @@ export const SellerOrders = () => {
                     {order.status === 'READY_FOR_DELIVERY' && (
                       <span className="px-4 py-2 bg-amber-50 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold flex items-center space-x-1">
                         <Clock className="w-4 h-4 text-amber-600" />
-                        <span>Couriers Bidding...</span>
+                        <span>Couriers Bidding (₦1,500 Fee)...</span>
                       </span>
                     )}
 
