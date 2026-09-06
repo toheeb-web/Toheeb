@@ -17,11 +17,14 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { WithdrawModal } from '../../components/WithdrawModal';
+import { FlutterwaveSubaccountModal } from '../../components/FlutterwaveSubaccountModal';
+import { Sparkles } from 'lucide-react';
 
 export const SellerDashboard = () => {
   const { sellers, foods, orders, currentUser, updateSellerProfile, transactions } = useApp();
   const navigate = useNavigate();
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [isSubaccountOpen, setIsSubaccountOpen] = useState(false);
 
   const currentSeller = sellers.find(s => s.userId === currentUser?.id) || sellers[0];
   const sellerDishes = foods.filter(f => f.sellerId === currentSeller?.id);
@@ -72,6 +75,13 @@ export const SellerDashboard = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <button
+            onClick={() => setIsSubaccountOpen(true)}
+            className="flex-1 sm:flex-initial px-4 py-2.5 bg-orange-50 border border-orange-200 hover:bg-orange-100 text-[#E23E1D] rounded-xl text-xs font-bold shadow-sm flex items-center justify-center space-x-1.5 transition-all"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#E23E1D]" />
+            <span>Flutterwave Subaccount</span>
+          </button>
           <button
             onClick={() => setIsWithdrawOpen(true)}
             className="flex-1 sm:flex-initial px-4 py-2.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center space-x-1.5 transition-all"
@@ -159,6 +169,33 @@ export const SellerDashboard = () => {
             {pendingOrders.length > 0 ? "Requires food prep" : "Kitchen clear"}
           </span>
         </div>
+      </div>
+
+      {/* Flutterwave Automated 95% Split Settlement Card */}
+      <div className="mb-8 bg-gradient-to-r from-[#1C1B1F] via-[#2A2730] to-[#1C1B1F] text-white p-5 sm:p-6 rounded-3xl shadow-md border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center space-x-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="text-xs font-bold uppercase tracking-wider text-orange-400">Flutterwave Subaccount Active</span>
+            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-extrabold px-2 py-0.5 rounded-full border border-emerald-500/30">
+              95% AUTO-SETTLE
+            </span>
+          </div>
+          <h3 className="text-base font-extrabold text-white">
+            Subaccount: <code className="font-mono text-emerald-400">{currentSeller?.flutterwaveSubaccountId || "RS_0B48B9284F3B"}</code>
+          </h3>
+          <p className="text-xs text-white/70">
+            Settlement Bank: <strong className="text-white">{currentSeller?.bankName || "GTBank"}</strong> • Account: <strong className="text-white">{currentSeller?.accountNumber || "0284764090"}</strong> ({currentSeller?.businessName})
+          </p>
+        </div>
+
+        <button
+          onClick={() => setIsSubaccountOpen(true)}
+          className="px-4 py-2.5 bg-[#E23E1D] hover:bg-[#C93315] text-white text-xs font-bold rounded-xl shadow transition-all flex items-center space-x-1.5 self-stretch md:self-auto justify-center"
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Configure Settlement Account</span>
+        </button>
       </div>
 
       {/* Orders & Menu Section */}
@@ -274,6 +311,13 @@ export const SellerDashboard = () => {
         onClose={() => setIsWithdrawOpen(false)}
         availableBalance={availableBalance}
         userRole="SELLER"
+      />
+
+      {/* Flutterwave Subaccount Modal */}
+      <FlutterwaveSubaccountModal
+        isOpen={isSubaccountOpen}
+        onClose={() => setIsSubaccountOpen(false)}
+        seller={currentSeller}
       />
     </div>
   );

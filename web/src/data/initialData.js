@@ -107,7 +107,12 @@ export const initialSellers = [
     isOpen: true,
     isApproved: true,
     commissionRate: 0.05, // 5% platform commission
-    image: "/chopconnect_hero_1788517559174.jpg"
+    image: "/chopconnect_hero_1788517559174.jpg",
+    flutterwaveSubaccountId: "RS_0B48B9284F3B",
+    bankCode: "058",
+    bankName: "Guaranty Trust Bank (GTBank)",
+    accountNumber: "0284764090",
+    accountName: "Chef Bisi Mama K Kitchen"
   },
   {
     id: 2,
@@ -123,7 +128,12 @@ export const initialSellers = [
     isOpen: true,
     isApproved: true,
     commissionRate: 0.05, // 5% platform commission
-    image: "/food_suya_1788517820467.jpg"
+    image: "/food_suya_1788517820467.jpg",
+    flutterwaveSubaccountId: "RS_1A93C872E401",
+    bankCode: "057",
+    bankName: "Zenith Bank",
+    accountNumber: "2198476090",
+    accountName: "Alhaji Bello Grills"
   },
   {
     id: 3,
@@ -139,7 +149,12 @@ export const initialSellers = [
     isOpen: true,
     isApproved: true,
     commissionRate: 0.05, // 5% platform commission
-    image: "/chopconnect_hero_1788517559174.jpg"
+    image: "/chopconnect_hero_1788517559174.jpg",
+    flutterwaveSubaccountId: "RS_7D2849F8102C",
+    bankCode: "044",
+    bankName: "Access Bank",
+    accountNumber: "0784764090",
+    accountName: "Naija AfroBistro"
   }
 ];
 

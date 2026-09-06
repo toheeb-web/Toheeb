@@ -269,6 +269,46 @@ export const OrderTracking = () => {
             <div className="bg-white rounded-3xl p-6 border border-[#E2D7CF] shadow-sm space-y-4">
               <h3 className="font-extrabold text-base text-[#1C1B1F]">Order Details</h3>
 
+              {/* Flutterwave Payment & Settlement Breakdown */}
+              <div className="bg-orange-50/70 border border-orange-200/80 rounded-2xl p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="text-xs font-bold text-neutral-900">Flutterwave Settlement</span>
+                  </div>
+                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                    activeOrder.paymentStatus === 'PAID' 
+                      ? 'bg-emerald-100 text-emerald-800' 
+                      : activeOrder.paymentStatus === 'FAILED'
+                      ? 'bg-rose-100 text-rose-800'
+                      : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    {activeOrder.paymentStatus || 'PAID'}
+                  </span>
+                </div>
+
+                <div className="text-[11px] text-neutral-600 space-y-1">
+                  <div className="flex justify-between">
+                    <span>TxRef:</span>
+                    <span className="font-mono text-neutral-800 font-bold truncate max-w-[170px]">{activeOrder.transactionRef}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Vendor 95% Net:</span>
+                    <span className="font-bold text-emerald-700">{formatNaira(activeOrder.vendorNet || (activeOrder.subtotal * 0.95))}</span>
+                  </div>
+                  <div className="flex justify-between text-neutral-500">
+                    <span>Platform 5% Split:</span>
+                    <span className="font-bold text-orange-600">{formatNaira(activeOrder.vendorCommission || (activeOrder.subtotal * 0.05))}</span>
+                  </div>
+                  {activeOrder.vendorSubaccountId && (
+                    <div className="flex justify-between text-[10px] text-neutral-400 pt-1 border-t border-orange-200/50">
+                      <span>Subaccount:</span>
+                      <code className="font-mono text-neutral-700">{activeOrder.vendorSubaccountId}</code>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="space-y-3 pb-4 border-b border-neutral-100 text-xs text-[#49454F]">
                 {activeOrder.items?.map((item, i) => (
                   <div key={i} className="flex justify-between items-center">

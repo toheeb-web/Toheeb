@@ -26,6 +26,7 @@ export const Cart = () => {
     removeFromCart, 
     clearCart, 
     placeOrder, 
+    sellers,
     currentUser, 
     verifiedLocation,
     showToast 
@@ -41,9 +42,11 @@ export const Cart = () => {
   const deliveryFee = cart.length > 0 ? 1500 : 0; // Customer pays ₦1,500 delivery fee
   const total = subtotal + deliveryFee;
 
+  const primarySeller = sellers?.find(s => s.id === cart[0]?.sellerId) || sellers?.[0];
+
   const handleInitiatePayment = () => {
     if (cart.length === 0) {
-      showToast("Your cart is empty!");
+      showToast("Your cart is empty.");
       return;
     }
     if (!deliveryAddress.trim()) {
@@ -53,13 +56,16 @@ export const Cart = () => {
     setIsPaymentOpen(true);
   };
 
-  const handlePaymentSuccess = ({ method, reference }) => {
+  const handlePaymentSuccess = ({ method, reference, flutterwaveId, subaccountId, status }) => {
     setIsPaymentOpen(false);
     const order = placeOrder({ 
       deliveryAddress, 
       notes,
-      paymentMethod: method,
-      transactionRef: reference 
+      paymentMethod: method || "Flutterwave Checkout",
+      transactionRef: reference,
+      flutterwaveId,
+      subaccountId: subaccountId || primarySeller?.flutterwaveSubaccountId,
+      paymentStatus: status || "PAID"
     });
     if (order) {
       navigate('/buyer/orders');
@@ -234,15 +240,15 @@ export const Cart = () => {
 
           <button
             onClick={handleInitiatePayment}
-            className="w-full py-4 bg-brand-500 hover:bg-brand-600 active:scale-[0.99] text-white font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center space-x-2 text-sm"
+            className="w-full py-4 bg-[#E23E1D] hover:bg-[#C93315] active:scale-[0.99] text-white font-black rounded-2xl shadow-lg transition-all flex items-center justify-center space-x-2 text-sm"
           >
             <CreditCard className="w-4 h-4" />
-            <span>Pay with Mastercard or Transfer</span>
+            <span>Pay with Flutterwave (95% Split)</span>
           </button>
 
           <div className="pt-2 text-center text-xs text-neutral-500 flex items-center justify-center space-x-1">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Secured Nigerian Checkout</span>
+            <span>Flutterwave Secure Nigerian Checkout</span>
           </div>
 
           <div className="pt-2 border-t border-neutral-100 text-center text-[11px] text-neutral-500">
@@ -256,8 +262,14 @@ export const Cart = () => {
         isOpen={isPaymentOpen}
         onClose={() => setIsPaymentOpen(false)}
         totalAmount={total}
+        subtotal={subtotal}
+        deliveryFee={deliveryFee}
+        vendorSubaccountId={primarySeller?.flutterwaveSubaccountId || "RS_0B48B9284F3B"}
+        vendorName={primarySeller?.businessName || "Vendor Kitchen"}
+        sellerId={primarySeller?.id}
         onPaymentSuccess={handlePaymentSuccess}
         customerName={currentUser?.name}
+        customerEmail={currentUser?.email || "customer@chopconnect.ng"}
         customerPhone={currentUser?.phone || "+234 802 476 4090"}
       />
 
