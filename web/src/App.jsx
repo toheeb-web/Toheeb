@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { BottomNav } from './components/BottomNav';
+import { FloatingQuickNav } from './components/FloatingQuickNav';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Auth Pages
@@ -27,7 +28,7 @@ import { AvailableDeliveries } from './pages/rider/AvailableDeliveries';
 import { RiderProfile } from './pages/rider/RiderProfile';
 
 export default function App() {
-  const { currentUser } = useApp();
+  const { currentUser, setQuickNavOpen, setOnboardingOpen } = useApp();
 
   const getDefaultRoute = () => {
     if (currentUser?.role === 'SELLER') return '/seller';
@@ -123,6 +124,12 @@ export default function App() {
 
       {/* Thumb-friendly mobile navigation bar for smartphones */}
       <BottomNav />
+
+      {/* Floating Quick Navigation & Onboarding Button */}
+      <FloatingQuickNav 
+        onOpenNav={() => setQuickNavOpen(true)} 
+        onOpenOnboarding={() => setOnboardingOpen(true)} 
+      />
     </div>
   );
 }

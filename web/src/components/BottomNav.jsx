@@ -9,11 +9,12 @@ import {
   Bike, 
   PlusCircle, 
   ClipboardList, 
-  BarChart3 
+  BarChart3,
+  Compass
 } from 'lucide-react';
 
 export const BottomNav = () => {
-  const { currentUser, cart } = useApp();
+  const { currentUser, cart, setQuickNavOpen } = useApp();
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   const getNavItems = () => {
@@ -34,7 +35,7 @@ export const BottomNav = () => {
       case 'BUYER':
       default:
         return [
-          { to: '/buyer', label: 'Marketplace', icon: Store },
+          { to: '/buyer', label: 'Menu', icon: Store },
           { to: '/buyer/orders', label: 'Tracking', icon: Clock },
           { to: '/buyer/cart', label: 'Cart', icon: ShoppingBag, badge: cartCount },
           { to: '/buyer/profile', label: 'Account', icon: User }
@@ -46,7 +47,7 @@ export const BottomNav = () => {
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E2D7CF] pb-safe shadow-lg">
-      <div className="flex items-center justify-around h-16 px-2">
+      <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -55,7 +56,7 @@ export const BottomNav = () => {
               to={item.to}
               end={item.to === '/buyer' || item.to === '/seller' || item.to === '/rider'}
               className={({ isActive }) => `
-                relative flex flex-col items-center justify-center w-full h-full text-xs font-semibold transition-all
+                relative flex flex-col items-center justify-center flex-1 h-full text-xs font-semibold transition-all
                 ${isActive ? 'text-brand-500 font-bold scale-105' : 'text-[#79747E] hover:text-[#1C1B1F]'}
               `}
             >
@@ -67,10 +68,22 @@ export const BottomNav = () => {
                   </span>
                 )}
               </div>
-              <span className="text-[11px] tracking-tight">{item.label}</span>
+              <span className="text-[10px] tracking-tight">{item.label}</span>
             </NavLink>
           );
         })}
+
+        {/* Quick Nav Trigger in Bottom Bar */}
+        <button
+          onClick={() => setQuickNavOpen(true)}
+          type="button"
+          className="relative flex flex-col items-center justify-center flex-1 h-full text-xs font-semibold text-brand-600 hover:text-brand-700 transition-all active:scale-95"
+        >
+          <div className="p-1 bg-brand-50 rounded-lg">
+            <Compass className="w-4 h-4 text-brand-500" />
+          </div>
+          <span className="text-[10px] font-bold tracking-tight mt-0.5">Quick Hub</span>
+        </button>
       </div>
     </nav>
   );

@@ -38,6 +38,15 @@ export const AppProvider = ({ children }) => {
     }
   }, []);
 
+  // Navigation and Modal Visibility State
+  const [onboardingOpen, setOnboardingOpen] = useState(() => {
+    return !localStorage.getItem('chopconnect_onboarded');
+  });
+  const [quickNavOpen, setQuickNavOpen] = useState(false);
+  const [directoryOpen, setDirectoryOpen] = useState(false);
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [installOpen, setInstallOpen] = useState(false);
+
   // Load state from localStorage or initial seed
   const [users, setUsers] = useState(() => {
     const saved = localStorage.getItem('cc_users_ngn');
@@ -657,7 +666,17 @@ export const AppProvider = ({ children }) => {
       updateSellerProfile,
       addReview,
       withdrawFunds,
-      verifyLocation
+      verifyLocation,
+      onboardingOpen,
+      setOnboardingOpen,
+      quickNavOpen,
+      setQuickNavOpen,
+      directoryOpen,
+      setDirectoryOpen,
+      locationOpen,
+      setLocationOpen,
+      installOpen,
+      setInstallOpen
     }}>
       {children}
       {/* Toast Notification */}

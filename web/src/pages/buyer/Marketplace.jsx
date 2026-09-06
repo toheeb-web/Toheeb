@@ -8,20 +8,21 @@ import {
   Plus, 
   MapPin, 
   ArrowRight, 
-  Flame,
-  Users,
-  ShieldCheck,
-  Phone,
-  MessageCircle,
-  Download,
-  CheckCircle2,
-  Navigation
+  Flame, 
+  Users, 
+  ShieldCheck, 
+  Phone, 
+  MessageCircle, 
+  Download, 
+  CheckCircle2, 
+  Navigation,
+  Compass,
+  Sparkles,
+  Bike,
+  UtensilsCrossed
 } from 'lucide-react';
 import { FoodDetailModal } from './FoodDetailModal';
-import { RegisteredUsersDirectory } from '../../components/RegisteredUsersDirectory';
-import { LocationVerifier } from '../../components/LocationVerifier';
-import { InstallAppModal } from '../../components/InstallAppModal';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const CATEGORIES = [
   "All Dishes",
@@ -33,13 +34,25 @@ const CATEGORIES = [
 ];
 
 export const Marketplace = () => {
-  const { foods, sellers, users, addToCart, cart, verifiedLocation } = useApp();
+  const { 
+    foods, 
+    sellers, 
+    users, 
+    addToCart, 
+    cart, 
+    verifiedLocation,
+    setOnboardingOpen,
+    setQuickNavOpen,
+    setLocationOpen,
+    setDirectoryOpen,
+    setInstallOpen,
+    switchRole,
+    currentUser
+  } = useApp();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Dishes');
   const [selectedFood, setSelectedFood] = useState(null);
-  const [directoryOpen, setDirectoryOpen] = useState(false);
-  const [locationOpen, setLocationOpen] = useState(false);
-  const [installOpen, setInstallOpen] = useState(false);
 
   const onlineCount = users.filter(u => u.isOnline).length;
 
@@ -118,6 +131,92 @@ export const Marketplace = () => {
               <span>View Registered People & Riders</span>
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Onboarding & Navigation Quick Access Card */}
+      <div className="bg-white rounded-3xl p-5 mb-8 border border-[#E2D7CF] shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-neutral-100">
+          <div className="flex items-center space-x-3.5">
+            <div className="p-3 bg-brand-50 rounded-2xl text-brand-600 ring-4 ring-brand-100/60 flex-shrink-0">
+              <Compass className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="font-black text-base text-[#1C1B1F]">New to ChopConnect Nigeria?</span>
+                <span className="text-[10px] font-extrabold bg-brand-100 text-brand-800 px-2.5 py-0.5 rounded-full uppercase tracking-wider">Quick Access</span>
+              </div>
+              <p className="text-xs text-[#79747E] mt-0.5">
+                Explore our multi-role features: order hot meals, register your kitchen for 5% commission, or deliver as a rider for ₦1,100/trip.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setOnboardingOpen(true)}
+              className="flex-1 sm:flex-none px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center justify-center space-x-1.5 transition-all"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>How It Works (Tour)</span>
+            </button>
+
+            <button
+              onClick={() => setQuickNavOpen(true)}
+              className="flex-1 sm:flex-none px-4 py-2.5 bg-[#F5EEEA] hover:bg-[#EADFD7] text-[#1C1B1F] font-bold text-xs rounded-xl border border-[#E2D7CF] flex items-center justify-center space-x-1.5 transition-all"
+            >
+              <Compass className="w-4 h-4 text-brand-600" />
+              <span>Navigation Hub</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 3 Quick Role Switchers */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+          <button
+            onClick={() => { switchRole('BUYER'); navigate('/buyer'); }}
+            className={`p-3 rounded-2xl border text-left transition-all flex items-center space-x-3 ${
+              currentUser?.role === 'BUYER' ? 'bg-brand-50/70 border-brand-300 ring-2 ring-brand-200' : 'bg-white border-neutral-200 hover:bg-neutral-50'
+            }`}
+          >
+            <div className="p-2 bg-brand-500 text-white rounded-xl">
+              <UtensilsCrossed className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#1C1B1F]">Order Food as Buyer</p>
+              <p className="text-[10px] text-[#79747E]">Mastercard & NIP bank checkout</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => { switchRole('SELLER'); navigate('/seller'); }}
+            className={`p-3 rounded-2xl border text-left transition-all flex items-center space-x-3 ${
+              currentUser?.role === 'SELLER' ? 'bg-amber-50/70 border-amber-300 ring-2 ring-amber-200' : 'bg-white border-neutral-200 hover:bg-neutral-50'
+            }`}
+          >
+            <div className="p-2 bg-amber-600 text-white rounded-xl">
+              <Store className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#1C1B1F]">Sell Food as Kitchen</p>
+              <p className="text-[10px] text-[#79747E]">Keep 95% of sales (5% fee)</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => { switchRole('RIDER'); navigate('/rider'); }}
+            className={`p-3 rounded-2xl border text-left transition-all flex items-center space-x-3 ${
+              currentUser?.role === 'RIDER' ? 'bg-emerald-50/70 border-emerald-300 ring-2 ring-emerald-200' : 'bg-white border-neutral-200 hover:bg-neutral-50'
+            }`}
+          >
+            <div className="p-2 bg-emerald-700 text-white rounded-xl">
+              <Bike className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#1C1B1F]">Courier Delivery Rider</p>
+              <p className="text-[10px] text-[#79747E]">Earn ₦1,100 net per trip</p>
+            </div>
+          </button>
         </div>
       </div>
 
@@ -304,24 +403,6 @@ export const Marketplace = () => {
           onClose={() => setSelectedFood(null)} 
         />
       )}
-
-      {/* Registered Members Directory Modal */}
-      <RegisteredUsersDirectory 
-        isOpen={directoryOpen}
-        onClose={() => setDirectoryOpen(false)}
-      />
-
-      {/* Location Verifier */}
-      <LocationVerifier
-        isOpen={locationOpen}
-        onClose={() => setLocationOpen(false)}
-      />
-
-      {/* Install App Modal */}
-      <InstallAppModal
-        isOpen={installOpen}
-        onClose={() => setInstallOpen(false)}
-      />
     </div>
   );
 };

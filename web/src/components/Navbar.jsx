@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { 
@@ -17,19 +17,37 @@ import {
   Download,
   Phone,
   MessageCircle,
-  ShieldCheck
+  ShieldCheck,
+  Compass,
+  HelpCircle
 } from 'lucide-react';
 import { RegisteredUsersDirectory } from './RegisteredUsersDirectory';
 import { LocationVerifier } from './LocationVerifier';
 import { InstallAppModal } from './InstallAppModal';
+import { OnboardingModal } from './OnboardingModal';
+import { QuickNavDrawer } from './QuickNavDrawer';
 
 export const Navbar = () => {
-  const { currentUser, users, cart, switchRole, logout, verifiedLocation } = useApp();
+  const { 
+    currentUser, 
+    users, 
+    cart, 
+    switchRole, 
+    logout, 
+    verifiedLocation,
+    onboardingOpen,
+    setOnboardingOpen,
+    quickNavOpen,
+    setQuickNavOpen,
+    directoryOpen,
+    setDirectoryOpen,
+    locationOpen,
+    setLocationOpen,
+    installOpen,
+    setInstallOpen
+  } = useApp();
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [directoryOpen, setDirectoryOpen] = useState(false);
-  const [locationOpen, setLocationOpen] = useState(false);
-  const [installOpen, setInstallOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -71,10 +89,19 @@ export const Navbar = () => {
 
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => setDirectoryOpen(true)}
-              className="flex items-center space-x-1.5 text-amber-300 hover:text-amber-200 font-bold"
+              onClick={() => setOnboardingOpen(true)}
+              className="flex items-center space-x-1 text-amber-300 hover:text-amber-200 font-bold"
+              title="View App Tour & Onboarding"
             >
-              <Users className="w-3.5 h-3.5" />
+              <Sparkles className="w-3 h-3" />
+              <span>How It Works (Tour)</span>
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => setDirectoryOpen(true)}
+              className="flex items-center space-x-1.5 text-white/90 hover:text-white font-medium"
+            >
+              <Users className="w-3.5 h-3.5 text-emerald-400" />
               <span>{onlineCount} Members Online</span>
             </button>
             <span>•</span>
@@ -102,11 +129,11 @@ export const Navbar = () => {
                   className="w-10 h-10 rounded-xl object-cover shadow-sm ring-2 ring-brand-500/20 group-hover:scale-105 transition-transform" 
                 />
                 <div className="flex flex-col">
-                  <span className="text-xl font-extrabold tracking-tight text-brand-500 font-sans">
+                  <span className="text-xl font-black tracking-tight text-brand-500 font-sans">
                     Chop<span className="text-[#1C1B1F]">Connect</span>
                   </span>
-                  <span className="text-[10px] font-semibold tracking-wider uppercase text-[#79747E] -mt-1">
-                    Nigeria Food & Express Dispatch
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-[#79747E] -mt-1">
+                    Nigeria Food & Dispatch
                   </span>
                 </div>
               </Link>
@@ -114,7 +141,7 @@ export const Navbar = () => {
               {/* Live Online Badge / Directory Trigger */}
               <button
                 onClick={() => setDirectoryOpen(true)}
-                className="hidden lg:inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                className="hidden xl:inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
                 title="View registered people and online status"
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -128,13 +155,13 @@ export const Navbar = () => {
                 <>
                   <Link 
                     to="/buyer" 
-                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/buyer' ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
+                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/buyer' ? 'bg-brand-50 text-brand-600 font-bold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
                   >
                     Food Menu
                   </Link>
                   <Link 
                     to="/buyer/orders" 
-                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/buyer/orders' ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
+                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/buyer/orders' ? 'bg-brand-50 text-brand-600 font-bold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
                   >
                     Track Orders
                   </Link>
@@ -145,19 +172,19 @@ export const Navbar = () => {
                 <>
                   <Link 
                     to="/seller" 
-                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/seller' ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
+                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/seller' ? 'bg-amber-50 text-amber-800 font-bold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
                   >
                     Kitchen Dashboard
                   </Link>
                   <Link 
                     to="/seller/products" 
-                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/seller/products' ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
+                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/seller/products' ? 'bg-amber-50 text-amber-800 font-bold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
                   >
-                    Manage Dishes
+                    Dishes & Prices
                   </Link>
                   <Link 
                     to="/seller/orders" 
-                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/seller/orders' ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
+                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/seller/orders' ? 'bg-amber-50 text-amber-800 font-bold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
                   >
                     Incoming Orders
                   </Link>
@@ -168,25 +195,35 @@ export const Navbar = () => {
                 <>
                   <Link 
                     to="/rider" 
-                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/rider' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
+                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/rider' ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
                   >
                     Courier Hub
                   </Link>
                   <Link 
                     to="/rider/deliveries" 
-                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/rider/deliveries' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
+                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/rider/deliveries' ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
                   >
                     Available Deliveries
                   </Link>
                 </>
               )}
 
+              {/* Quick Navigation Hub Button */}
+              <button
+                onClick={() => setQuickNavOpen(true)}
+                className="px-3 py-2 bg-[#F5EEEA] hover:bg-[#EADFD7] text-[#1C1B1F] rounded-xl flex items-center space-x-1.5 text-xs font-black border border-[#E2D7CF] transition-colors"
+                title="Open Quick Access Navigation Hub"
+              >
+                <Compass className="w-3.5 h-3.5 text-brand-600" />
+                <span>Navigation Hub</span>
+              </button>
+
               {/* Community Directory Tab */}
               <button
                 onClick={() => setDirectoryOpen(true)}
-                className="px-3 py-2 rounded-xl text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100 flex items-center space-x-1.5 transition-colors"
+                className="px-3 py-2 rounded-xl text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100 flex items-center space-x-1.5 transition-colors text-xs font-semibold"
               >
-                <Users className="w-4 h-4 text-brand-500" />
+                <Users className="w-3.5 h-3.5 text-brand-500" />
                 <span>Live Members</span>
               </button>
             </nav>
@@ -194,6 +231,16 @@ export const Navbar = () => {
             {/* Right Action Icons: Install App, Role Switcher, Cart, Profile */}
             <div className="flex items-center space-x-2">
               
+              {/* Onboarding Guide / Tour Button */}
+              <button
+                onClick={() => setOnboardingOpen(true)}
+                className="hidden lg:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-brand-50 text-brand-700 border border-brand-200 hover:bg-brand-100 shadow-sm transition-all"
+                title="Start Onboarding Walkthrough"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-brand-500" />
+                <span>Quick Tour</span>
+              </button>
+
               {/* Install / Download App Button */}
               <button
                 onClick={() => setInstallOpen(true)}
@@ -201,7 +248,7 @@ export const Navbar = () => {
                 title="Install or Download ChopConnect App"
               >
                 <Download className="w-3.5 h-3.5 text-amber-400" />
-                <span>Install App</span>
+                <span>Install</span>
               </button>
 
               {/* Quick Role Switcher */}
@@ -299,7 +346,27 @@ export const Navbar = () => {
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-b border-[#E2D7CF] px-4 pt-2 pb-4 space-y-2">
-            <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
+            
+            {/* Quick Actions at Top of Mobile Menu */}
+            <div className="grid grid-cols-2 gap-2 pb-2 border-b border-neutral-100">
+              <button
+                onClick={() => { setQuickNavOpen(true); setMobileMenuOpen(false); }}
+                className="py-2 px-3 bg-brand-500 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1 shadow-sm"
+              >
+                <Compass className="w-3.5 h-3.5" />
+                <span>Navigation Hub</span>
+              </button>
+
+              <button
+                onClick={() => { setOnboardingOpen(true); setMobileMenuOpen(false); }}
+                className="py-2 px-3 bg-brand-50 text-brand-700 border border-brand-200 rounded-xl text-xs font-bold flex items-center justify-center space-x-1"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-brand-500" />
+                <span>Quick Tour</span>
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between py-1.5 border-b border-neutral-100">
               <button
                 onClick={() => { setLocationOpen(true); setMobileMenuOpen(false); }}
                 className="flex items-center space-x-1.5 text-xs font-bold text-brand-600"
@@ -321,23 +388,23 @@ export const Navbar = () => {
                 <Link 
                   to="/buyer" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-xl text-base font-medium text-[#1C1B1F] hover:bg-neutral-100"
+                  className="block px-3 py-2 rounded-xl text-base font-semibold text-[#1C1B1F] hover:bg-neutral-100"
                 >
                   Food Marketplace
                 </Link>
                 <Link 
                   to="/buyer/orders" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-xl text-base font-medium text-[#1C1B1F] hover:bg-neutral-100"
+                  className="block px-3 py-2 rounded-xl text-base font-semibold text-[#1C1B1F] hover:bg-neutral-100"
                 >
                   Track Orders & Deliveries
                 </Link>
                 <Link 
                   to="/buyer/cart" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-xl text-base font-medium text-[#1C1B1F] hover:bg-neutral-100"
+                  className="block px-3 py-2 rounded-xl text-base font-semibold text-[#1C1B1F] hover:bg-neutral-100"
                 >
-                  Cart ({cartCount})
+                  Shopping Cart ({cartCount})
                 </Link>
               </>
             )}
@@ -347,21 +414,21 @@ export const Navbar = () => {
                 <Link 
                   to="/seller" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-xl text-base font-medium text-[#1C1B1F] hover:bg-neutral-100"
+                  className="block px-3 py-2 rounded-xl text-base font-semibold text-[#1C1B1F] hover:bg-neutral-100"
                 >
                   Kitchen Dashboard
                 </Link>
                 <Link 
                   to="/seller/products" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-xl text-base font-medium text-[#1C1B1F] hover:bg-neutral-100"
+                  className="block px-3 py-2 rounded-xl text-base font-semibold text-[#1C1B1F] hover:bg-neutral-100"
                 >
                   Menu & Food Dishes
                 </Link>
                 <Link 
                   to="/seller/orders" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-xl text-base font-medium text-[#1C1B1F] hover:bg-neutral-100"
+                  className="block px-3 py-2 rounded-xl text-base font-semibold text-[#1C1B1F] hover:bg-neutral-100"
                 >
                   Incoming Orders
                 </Link>
@@ -373,14 +440,14 @@ export const Navbar = () => {
                 <Link 
                   to="/rider" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-xl text-base font-medium text-[#1C1B1F] hover:bg-neutral-100"
+                  className="block px-3 py-2 rounded-xl text-base font-semibold text-[#1C1B1F] hover:bg-neutral-100"
                 >
                   Rider Hub
                 </Link>
                 <Link 
                   to="/rider/deliveries" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-xl text-base font-medium text-[#1C1B1F] hover:bg-neutral-100"
+                  className="block px-3 py-2 rounded-xl text-base font-semibold text-[#1C1B1F] hover:bg-neutral-100"
                 >
                   Available Deliveries & Bids
                 </Link>
@@ -389,11 +456,18 @@ export const Navbar = () => {
 
             <button
               onClick={() => { setInstallOpen(true); setMobileMenuOpen(false); }}
-              className="w-full text-left px-3 py-2 rounded-xl text-base font-medium text-brand-600 hover:bg-brand-50 flex items-center space-x-2"
+              className="w-full text-left px-3 py-2 rounded-xl text-base font-semibold text-brand-600 hover:bg-brand-50 flex items-center space-x-2"
             >
               <Download className="w-4 h-4" />
               <span>Install ChopConnect App</span>
             </button>
+
+            <a
+              href="tel:+2348024764090"
+              className="block px-3 py-2 rounded-xl text-xs font-bold text-amber-800 bg-amber-50"
+            >
+              Helpline: +234 802 476 4090
+            </a>
 
             <div className="pt-3 border-t border-neutral-100 flex items-center justify-between">
               <span className="text-xs text-[#79747E]">Active: {currentUser?.name}</span>
@@ -411,6 +485,22 @@ export const Navbar = () => {
           </div>
         )}
       </header>
+
+      {/* Quick Navigation Drawer */}
+      <QuickNavDrawer
+        isOpen={quickNavOpen}
+        onClose={() => setQuickNavOpen(false)}
+        onOpenOnboarding={() => setOnboardingOpen(true)}
+        onOpenLocation={() => setLocationOpen(true)}
+        onOpenDirectory={() => setDirectoryOpen(true)}
+        onOpenInstall={() => setInstallOpen(true)}
+      />
+
+      {/* Onboarding Interactive Tour Modal */}
+      <OnboardingModal
+        isOpen={onboardingOpen}
+        onClose={() => setOnboardingOpen(false)}
+      />
 
       {/* Directory Modal */}
       <RegisteredUsersDirectory 
