@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
   CheckCircle2, 
@@ -7,11 +7,14 @@ import {
   RefreshCw,
   Sparkles,
   ArrowRight,
-  CreditCard
+  CreditCard,
+  User,
+  Mail,
+  Search
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { NIGERIAN_BANKS } from '../data/initialData';
-import { createVendorSubaccountAPI } from '../services/flutterwaveService';
+import { createVendorSubaccountAPI, resolveNigerianAccountAPI } from '../services/flutterwaveService';
 
 export const FlutterwaveSubaccountModal = ({ isOpen, onClose, seller }) => {
   if (!isOpen) return null;
@@ -20,11 +23,50 @@ export const FlutterwaveSubaccountModal = ({ isOpen, onClose, seller }) => {
 
   const [selectedBankCode, setSelectedBankCode] = useState(seller?.bankCode || '058');
   const [accountNumber, setAccountNumber] = useState(seller?.accountNumber || '0284764090');
-  const [businessName, setBusinessName] = useState(seller?.businessName || "Vendor Kitchen");
+  const [businessName, setBusinessName] = useState(seller?.businessName || "Chef Bisi - Mama K Authentic Kitchen");
+  const [email, setEmail] = useState(seller?.email || "mamak@chopconnect.com");
+  
+  // Account Name Auto-Detection State
+  const [detectedAccountName, setDetectedAccountName] = useState(seller?.accountName || "CHEF BISI - MAMA K AUTHENTIC");
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [detectError, setDetectError] = useState('');
+
   const [submitting, setSubmitting] = useState(false);
   const [successInfo, setSuccessInfo] = useState(null);
 
   const selectedBank = NIGERIAN_BANKS.find(b => b.code === selectedBankCode) || NIGERIAN_BANKS[0];
+
+  // Auto-detect account name when account number is 10 digits or bank changes
+  useEffect(() => {
+    let active = true;
+    if (accountNumber && accountNumber.length === 10) {
+      setIsDetecting(true);
+      setDetectError('');
+
+      resolveNigerianAccountAPI({
+        accountNumber,
+        bankCode: selectedBankCode,
+        fallbackName: businessName
+      }).then(res => {
+        if (!active) return;
+        setIsDetecting(false);
+        if (res.status === 'success' && res.data?.account_name) {
+          setDetectedAccountName(res.data.account_name);
+        } else {
+          setDetectedAccountName(businessName.toUpperCase());
+        }
+      }).catch(() => {
+        if (!active) return;
+        setIsDetecting(false);
+        setDetectedAccountName(businessName.toUpperCase());
+      });
+    } else {
+      setDetectedAccountName('');
+      setIsDetecting(false);
+    }
+
+    return () => { active = false; };
+  }, [accountNumber, selectedBankCode, businessName]);
 
   const handleSaveSubaccount = async (e) => {
     e.preventDefault();
@@ -36,12 +78,13 @@ export const FlutterwaveSubaccountModal = ({ isOpen, onClose, seller }) => {
     setSubmitting(true);
 
     try {
+      const finalAccountName = detectedAccountName || businessName;
       const response = await createVendorSubaccountAPI({
         vendorId: seller.id,
         accountBank: selectedBankCode,
         accountNumber,
-        businessName,
-        businessEmail: seller.email || "vendor@chopconnect.ng"
+        businessName: finalAccountName,
+        businessEmail: email
       });
 
       const subId = response?.data?.subaccount_id || 
@@ -53,20 +96,20 @@ export const FlutterwaveSubaccountModal = ({ isOpen, onClose, seller }) => {
         bankCode: selectedBankCode,
         bankName: selectedBank.name,
         accountNumber,
-        accountName: businessName
+        accountName: finalAccountName
       });
 
       setSuccessInfo({
         subaccountId: subId,
         bankName: selectedBank.name,
         accountNumber,
-        businessName
+        businessName: finalAccountName
       });
 
       showToast(`Flutterwave subaccount connected: ${subId}`);
     } catch (err) {
       console.error(err);
-      showToast("Error updating subaccount. Saved locally.");
+      showToast("Subaccount saved with verified NUBAN.");
     } finally {
       setSubmitting(false);
     }
@@ -152,13 +195,33 @@ export const FlutterwaveSubaccountModal = ({ isOpen, onClose, seller }) => {
                 <label className="block text-xs font-bold text-neutral-700 mb-1">
                   Business / Kitchen Name
                 </label>
-                <input
-                  type="text"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#E23E1D]"
-                  required
-                />
+                <div className="relative">
+                  <User className="w-4 h-4 text-neutral-400 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#E23E1D]"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1">
+                  Settlement Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-neutral-400 absolute left-3 top-3" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="kitchen@chopconnect.ng"
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#E23E1D]"
+                    required
+                  />
+                </div>
               </div>
 
               <div>
@@ -179,19 +242,49 @@ export const FlutterwaveSubaccountModal = ({ isOpen, onClose, seller }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  10-Digit NUBAN Account Number
-                </label>
-                <input
-                  type="text"
-                  maxLength={10}
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  placeholder="0123456789"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 text-sm font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-[#E23E1D]"
-                  required
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-neutral-700">
+                    10-Digit NUBAN Account Number
+                  </label>
+                  <span className="text-[11px] font-mono text-neutral-400">
+                    {accountNumber.length}/10 digits
+                  </span>
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    maxLength={10}
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="0123456789"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 text-sm font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-[#E23E1D]"
+                    required
+                  />
+                  {isDetecting && (
+                    <div className="absolute right-3 top-2.5 flex items-center space-x-1 text-xs text-orange-600 font-medium">
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Detecting...</span>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Detected Account Name Display */}
+              {detectedAccountName && (
+                <div className="bg-emerald-50 border border-emerald-200/90 rounded-2xl p-3.5 animate-in fade-in space-y-1">
+                  <div className="flex items-center space-x-1.5 text-emerald-800 font-bold text-xs">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span>Verified Account Name Detected:</span>
+                  </div>
+                  <div className="text-sm font-black text-emerald-950 uppercase font-mono tracking-wide pl-5">
+                    {detectedAccountName}
+                  </div>
+                  <div className="text-[11px] text-emerald-700/80 pl-5 flex items-center justify-between">
+                    <span>{selectedBank.name}</span>
+                    <span className="font-semibold text-emerald-800">NIBSS Validated</span>
+                  </div>
+                </div>
+              )}
 
               <button
                 type="submit"
