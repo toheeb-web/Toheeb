@@ -22,6 +22,14 @@ import {
   generateVendorSubaccountId, 
   FLUTTERWAVE_PUBLIC_KEY 
 } from '../services/flutterwaveService';
+import {
+  apiFetchOrders,
+  apiCreateOrder,
+  apiAcceptOrder,
+  apiUpdateOrderStatus,
+  apiUpdateRiderLocation,
+  apiLogin
+} from '../services/apiService';
 
 const AppContext = createContext();
 
@@ -35,7 +43,7 @@ export const AppProvider = ({ children }) => {
   // Clear any legacy demo or mock data cache from previous versions
   useEffect(() => {
     const version = localStorage.getItem('cc_version');
-    if (version !== 'toheebay_live_v5') {
+    if (version !== 'toheebay_live_v6') {
       localStorage.removeItem('cc_users_ngn');
       localStorage.removeItem('cc_current_user_ngn');
       localStorage.removeItem('cc_foods_ngn');
@@ -45,7 +53,7 @@ export const AppProvider = ({ children }) => {
       localStorage.removeItem('cc_transactions_ngn');
       localStorage.removeItem('cc_reviews_ngn');
       localStorage.removeItem('cc_cart_ngn');
-      localStorage.setItem('cc_version', 'toheebay_live_v5');
+      localStorage.setItem('cc_version', 'toheebay_live_v6');
     }
   }, []);
 
@@ -61,14 +69,14 @@ export const AppProvider = ({ children }) => {
   // Load state from localStorage or initial seed (Purged of mock data)
   const [users, setUsers] = useState(() => {
     const version = localStorage.getItem('cc_version');
-    if (version !== 'toheebay_live_v5') return initialUsers;
+    if (version !== 'toheebay_live_v6') return initialUsers;
     const saved = localStorage.getItem('cc_users_ngn');
     return saved ? JSON.parse(saved) : initialUsers;
   });
 
   const [currentUser, setCurrentUser] = useState(() => {
     const version = localStorage.getItem('cc_version');
-    if (version !== 'toheebay_live_v5') return initialUsers[0]; // Master Admin: Toheebay
+    if (version !== 'toheebay_live_v6') return initialUsers[0]; // Master Admin: Toheebay
     const saved = localStorage.getItem('cc_current_user_ngn');
     if (saved) return JSON.parse(saved);
     return initialUsers[0]; // Toheebay
@@ -76,21 +84,21 @@ export const AppProvider = ({ children }) => {
 
   const [foods, setFoods] = useState(() => {
     const version = localStorage.getItem('cc_version');
-    if (version !== 'toheebay_live_v5') return initialFoods;
+    if (version !== 'toheebay_live_v6') return initialFoods;
     const saved = localStorage.getItem('cc_foods_ngn');
     return saved ? JSON.parse(saved) : initialFoods;
   });
 
   const [sellers, setSellers] = useState(() => {
     const version = localStorage.getItem('cc_version');
-    if (version !== 'toheebay_live_v5') return initialSellers;
+    if (version !== 'toheebay_live_v6') return initialSellers;
     const saved = localStorage.getItem('cc_sellers_ngn');
     return saved ? JSON.parse(saved) : initialSellers;
   });
 
   const [orders, setOrders] = useState(() => {
     const version = localStorage.getItem('cc_version');
-    if (version !== 'toheebay_live_v5') return initialOrders;
+    if (version !== 'toheebay_live_v6') return initialOrders;
     const saved = localStorage.getItem('cc_orders_ngn');
     return saved ? JSON.parse(saved) : initialOrders;
   });

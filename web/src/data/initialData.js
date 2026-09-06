@@ -217,16 +217,19 @@ export const initialOrders = [
     sellerId: 1,
     sellerName: "Toheebay's Kitchen & Grills",
     deliveryAddress: "14 Admiralty Way, Lekki Phase 1, Lagos",
-    status: "READY_FOR_DELIVERY", // Ready for customer to pick rider bid!
+    status: "READY_FOR_DELIVERY", // Open for live Nigerian courier pickup!
     subtotal: 9700,
     deliveryFee: 1500, // Customer pays ₦1,500
     riderFee: 1100,    // Courier receives ₦1,100
     platformDeliveryFee: 400, // ChopConnect keeps ₦400
     vendorCommission: 485, // 5% of ₦9,700
     vendorNet: 9215, // ₦9,700 - ₦485 -> Settled to GTBank 0108688385
-    riderId: 3,
-    riderName: "Tunde Balogun (Express)",
-    riderEta: "15 mins",
+    riderId: null,
+    riderName: null,
+    riderPhone: null,
+    riderVehicle: null,
+    riderEta: null,
+    riderLocation: null,
     paymentMethod: "Easy Bank Pay (GTBank)",
     paymentStatus: "PAID",
     transactionRef: "CC-FLW-GTB-0108688385",

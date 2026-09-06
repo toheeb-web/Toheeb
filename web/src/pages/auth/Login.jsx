@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { 
   Lock, 
@@ -18,14 +18,27 @@ import { firebaseResetPassword, isFirebaseConfigured } from '../../services/fire
 export const Login = () => {
   const { login, showToast } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  const roleParam = searchParams.get('role');
+  const fromParam = searchParams.get('from') || location.state?.from?.pathname;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState('BUYER');
+  const [selectedRole, setSelectedRole] = useState(roleParam || 'BUYER');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+
+  useEffect(() => {
+    if (roleParam === 'RIDER') {
+      setSelectedRole('RIDER');
+      setEmail('tunde@chopconnect.ng');
+      setPassword('Nigeria1@');
+    }
+  }, [roleParam]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,11 +51,18 @@ export const Login = () => {
     try {
       const user = await login(email, password, selectedRole);
       setLoading(false);
-      // Route based on role
-      if (user.role === 'ADMIN' || user.name === 'Toheebay') navigate('/admin');
-      else if (user.role === 'SELLER') navigate('/seller');
-      else if (user.role === 'RIDER') navigate('/rider');
-      else navigate('/buyer');
+      // Route based on role or fromParam
+      if (fromParam) {
+        navigate(fromParam, { replace: true });
+      } else if (user.role === 'ADMIN' || user.name === 'Toheebay') {
+        navigate('/admin');
+      } else if (user.role === 'SELLER') {
+        navigate('/seller');
+      } else if (user.role === 'RIDER') {
+        navigate('/rider');
+      } else {
+        navigate('/buyer');
+      }
     } catch (err) {
       setLoading(false);
       showToast("Login failed: " + err.message);
@@ -56,10 +76,17 @@ export const Login = () => {
     setLoading(true);
     const user = await login(accountEmail, accountPassword, role);
     setLoading(false);
-    if (role === 'ADMIN' || user.role === 'ADMIN') navigate('/admin');
-    else if (role === 'SELLER') navigate('/seller');
-    else if (role === 'RIDER') navigate('/rider');
-    else navigate('/buyer');
+    if (fromParam && (role === 'RIDER' || user.role === 'ADMIN')) {
+      navigate(fromParam, { replace: true });
+    } else if (role === 'ADMIN' || user.role === 'ADMIN') {
+      navigate('/admin');
+    } else if (role === 'SELLER') {
+      navigate('/seller');
+    } else if (role === 'RIDER') {
+      navigate('/rider');
+    } else {
+      navigate('/buyer');
+    }
   };
 
   const handlePasswordReset = async (e) => {

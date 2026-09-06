@@ -484,6 +484,14 @@ app.get('/api/flutterwave/transactions', (req, res) => {
   });
 });
 
+// Mount ChopConnect Real Production API (Orders, Riders, Concurrency, Live Location)
+try {
+  const apiApp = require('../api/index.js');
+  app.use(apiApp);
+} catch (e) {
+  console.warn('[Server] Could not mount api/index.js:', e.message);
+}
+
 // Start Server
 app.listen(PORT, () => {
   console.log(`[ChopConnect Flutterwave Backend] Running on port ${PORT}`);
