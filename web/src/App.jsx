@@ -27,10 +27,14 @@ import { RiderDashboard } from './pages/rider/RiderDashboard';
 import { AvailableDeliveries } from './pages/rider/AvailableDeliveries';
 import { RiderProfile } from './pages/rider/RiderProfile';
 
+// Admin Pages
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+
 export default function App() {
   const { currentUser, setQuickNavOpen, setOnboardingOpen } = useApp();
 
   const getDefaultRoute = () => {
+    if (currentUser?.role === 'ADMIN') return '/admin';
     if (currentUser?.role === 'SELLER') return '/seller';
     if (currentUser?.role === 'RIDER') return '/rider';
     return '/buyer';
@@ -116,6 +120,9 @@ export default function App() {
               </ProtectedRoute>
             } 
           />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminDashboard />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

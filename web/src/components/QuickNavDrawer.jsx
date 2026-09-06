@@ -132,6 +132,25 @@ export const QuickNavDrawer = ({
                 <p className={`text-[9px] ${currentUser?.role === 'RIDER' ? 'text-white/80' : 'text-[#79747E]'}`}>₦1,100 Fee</p>
               </button>
             </div>
+
+            {/* Master Admin Portal Shortcut */}
+            <div className="mt-2.5 pt-2 border-t border-neutral-200/80">
+              <button
+                onClick={() => navigateTo('/admin')}
+                className="w-full p-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 flex items-center justify-between transition-colors"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-7 h-7 rounded-xl bg-purple-700 text-white flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-black text-purple-950">Master Admin Portal (Toheebay)</p>
+                    <p className="text-[10px] text-purple-700 font-semibold">Monitor All Users • GTBank 0108688385</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-purple-600" />
+              </button>
+            </div>
           </div>
 
           {/* Navigation Links Sections */}

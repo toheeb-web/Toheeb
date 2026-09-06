@@ -56,6 +56,7 @@ export const Navbar = () => {
   const onlineCount = users.filter(u => u.isOnline).length;
 
   const roles = [
+    { id: 'ADMIN', label: 'Admin (Toheebay)', icon: ShieldCheck, path: '/admin', desc: 'Monitor users, orders & GTBank 0108688385' },
     { id: 'BUYER', label: 'Buyer', icon: UtensilsCrossed, path: '/buyer', desc: 'Browse dishes & track orders' },
     { id: 'SELLER', label: 'Seller', icon: Store, path: '/seller', desc: 'Kitchen & 5% commission earnings' },
     { id: 'RIDER', label: 'Rider', icon: Bike, path: '/rider', desc: 'Bidding & ₦1,100/trip deliveries' },
@@ -204,6 +205,25 @@ export const Navbar = () => {
                     className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/rider/deliveries' ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
                   >
                     Available Deliveries
+                  </Link>
+                </>
+              )}
+
+              {/* Master Admin Navigation */}
+              {currentUser?.role === 'ADMIN' && (
+                <>
+                  <Link 
+                    to="/admin" 
+                    className={`px-3 py-2 rounded-xl transition-colors flex items-center space-x-1.5 ${location.pathname === '/admin' ? 'bg-purple-100 text-purple-800 font-black' : 'text-purple-700 bg-purple-50 hover:bg-purple-100 font-bold'}`}
+                  >
+                    <ShieldCheck className="w-4 h-4 text-purple-600" />
+                    <span>Admin Dashboard</span>
+                  </Link>
+                  <Link 
+                    to="/buyer" 
+                    className={`px-3 py-2 rounded-xl transition-colors ${location.pathname === '/buyer' ? 'bg-brand-50 text-brand-600 font-bold' : 'text-[#49454F] hover:text-[#1C1B1F] hover:bg-neutral-100'}`}
+                  >
+                    Marketplace
                   </Link>
                 </>
               )}
@@ -452,6 +472,16 @@ export const Navbar = () => {
                   Available Deliveries & Bids
                 </Link>
               </>
+            )}
+
+            {currentUser?.role === 'ADMIN' && (
+              <Link 
+                to="/admin" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-base font-extrabold text-purple-700 bg-purple-50 hover:bg-purple-100"
+              >
+                Master Admin Portal (Toheebay)
+              </Link>
             )}
 
             <button

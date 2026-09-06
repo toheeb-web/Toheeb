@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp, formatNaira } from '../../context/AppContext';
 import { 
   Plus, 
@@ -11,7 +11,10 @@ import {
   ToggleLeft, 
   ToggleRight,
   Sparkles,
-  Percent
+  Percent,
+  Upload,
+  Camera,
+  Image as ImageIcon
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -41,6 +44,56 @@ export const SellerDishes = () => {
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [prepTimeMinutes, setPrepTimeMinutes] = useState(20);
   const [image, setImage] = useState(SAMPLE_IMAGES[0].url);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast("Please choose an image file from your device.");
+      return;
+    }
+
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        // High quality client-side canvas compressor for phone photos
+        const canvas = document.createElement('canvas');
+        const maxDim = 800;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.86);
+        setImage(dataUrl);
+        setIsUploading(false);
+        showToast("Photo added from phone storage!");
+      };
+      img.onerror = () => {
+        setIsUploading(false);
+        showToast("Could not load image.");
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const openAddModal = () => {
     setEditingDish(null);
@@ -279,25 +332,91 @@ export const SellerDishes = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#49454F] mb-2">Select Dish Photo</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {SAMPLE_IMAGES.map((img) => (
-                    <button
-                      key={img.url}
-                      type="button"
-                      onClick={() => setImage(img.url)}
-                      className={`relative rounded-xl overflow-hidden border-2 aspect-square ${
-                        image === img.url ? 'border-brand-500 ring-2 ring-brand-300' : 'border-neutral-200'
-                      }`}
-                    >
-                      <img src={img.url} alt={img.label} className="w-full h-full object-cover" />
-                      {image === img.url && (
-                        <div className="absolute inset-0 bg-brand-500/30 flex items-center justify-center">
-                          <Check className="w-4 h-4 text-white" />
+                <label className="block text-xs font-bold text-[#49454F] mb-1.5 flex items-center justify-between">
+                  <span>Dish Photo (Upload from Phone Storage or Camera)</span>
+                  <span className="text-[11px] text-brand-600 font-semibold">From Device</span>
+                </label>
+
+                {/* Hidden File Input for Phone Storage / Camera Roll */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                {/* Interactive Phone Storage Dropzone */}
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-brand-300 hover:border-brand-500 rounded-2xl p-4 bg-brand-50/30 hover:bg-brand-50/60 transition-all cursor-pointer text-center group"
+                >
+                  {image ? (
+                    <div>
+                      <div className="relative rounded-xl overflow-hidden shadow-sm h-40 w-full bg-neutral-100">
+                        <img
+                          src={image}
+                          alt="Dish Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2 text-white text-xs font-bold">
+                          <Camera className="w-4 h-4" />
+                          <span>Tap to Choose Different Photo</span>
                         </div>
-                      )}
-                    </button>
-                  ))}
+                      </div>
+                      <div className="mt-2.5 flex items-center justify-between px-1">
+                        <span className="text-[11px] text-emerald-700 font-bold flex items-center">
+                          <Check className="w-3.5 h-3.5 mr-1" /> Ready for Menu
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            fileInputRef.current?.click();
+                          }}
+                          className="text-[11px] font-bold text-brand-600 hover:underline flex items-center"
+                        >
+                          <Upload className="w-3 h-3 mr-1" /> Upload from Phone
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-5">
+                      <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-2 text-brand-500 shadow-sm border border-brand-200 group-hover:scale-105 transition-transform">
+                        <Upload className="w-6 h-6" />
+                      </div>
+                      <div className="text-xs font-extrabold text-[#1C1B1F]">
+                        {isUploading ? "Uploading Photo..." : "Tap to Add Photo from Phone Storage"}
+                      </div>
+                      <div className="text-[11px] text-[#79747E] mt-0.5">
+                        Choose from Camera, Photo Gallery, or Files
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Presets */}
+                <div className="mt-3">
+                  <span className="text-[11px] text-neutral-500 font-medium">Or pick a standard dish photo:</span>
+                  <div className="grid grid-cols-4 gap-2 mt-1">
+                    {SAMPLE_IMAGES.map((img) => (
+                      <button
+                        key={img.url}
+                        type="button"
+                        onClick={() => setImage(img.url)}
+                        className={`relative rounded-xl overflow-hidden border-2 aspect-square ${
+                          image === img.url ? 'border-brand-500 ring-2 ring-brand-300' : 'border-neutral-200'
+                        }`}
+                      >
+                        <img src={img.url} alt={img.label} className="w-full h-full object-cover" />
+                        {image === img.url && (
+                          <div className="absolute inset-0 bg-brand-500/30 flex items-center justify-center">
+                            <Check className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

@@ -32,15 +32,20 @@ export const formatNaira = (amount) => {
 };
 
 export const AppProvider = ({ children }) => {
-  // Clear any legacy dollar cache from previous versions
+  // Clear any legacy demo or mock data cache from previous versions
   useEffect(() => {
     const version = localStorage.getItem('cc_version');
-    if (version !== 'ngn_v3_live') {
-      localStorage.removeItem('cc_foods');
-      localStorage.removeItem('cc_orders');
-      localStorage.removeItem('cc_bids');
-      localStorage.removeItem('cc_sellers');
-      localStorage.setItem('cc_version', 'ngn_v3_live');
+    if (version !== 'toheebay_live_v5') {
+      localStorage.removeItem('cc_users_ngn');
+      localStorage.removeItem('cc_current_user_ngn');
+      localStorage.removeItem('cc_foods_ngn');
+      localStorage.removeItem('cc_orders_ngn');
+      localStorage.removeItem('cc_bids_ngn');
+      localStorage.removeItem('cc_sellers_ngn');
+      localStorage.removeItem('cc_transactions_ngn');
+      localStorage.removeItem('cc_reviews_ngn');
+      localStorage.removeItem('cc_cart_ngn');
+      localStorage.setItem('cc_version', 'toheebay_live_v5');
     }
   }, []);
 
@@ -53,29 +58,39 @@ export const AppProvider = ({ children }) => {
   const [locationOpen, setLocationOpen] = useState(false);
   const [installOpen, setInstallOpen] = useState(false);
 
-  // Load state from localStorage or initial seed
+  // Load state from localStorage or initial seed (Purged of mock data)
   const [users, setUsers] = useState(() => {
+    const version = localStorage.getItem('cc_version');
+    if (version !== 'toheebay_live_v5') return initialUsers;
     const saved = localStorage.getItem('cc_users_ngn');
     return saved ? JSON.parse(saved) : initialUsers;
   });
 
   const [currentUser, setCurrentUser] = useState(() => {
+    const version = localStorage.getItem('cc_version');
+    if (version !== 'toheebay_live_v5') return initialUsers[0]; // Master Admin: Toheebay
     const saved = localStorage.getItem('cc_current_user_ngn');
     if (saved) return JSON.parse(saved);
-    return initialUsers[0]; // Chief Amara (Buyer)
+    return initialUsers[0]; // Toheebay
   });
 
   const [foods, setFoods] = useState(() => {
+    const version = localStorage.getItem('cc_version');
+    if (version !== 'toheebay_live_v5') return initialFoods;
     const saved = localStorage.getItem('cc_foods_ngn');
     return saved ? JSON.parse(saved) : initialFoods;
   });
 
   const [sellers, setSellers] = useState(() => {
+    const version = localStorage.getItem('cc_version');
+    if (version !== 'toheebay_live_v5') return initialSellers;
     const saved = localStorage.getItem('cc_sellers_ngn');
     return saved ? JSON.parse(saved) : initialSellers;
   });
 
   const [orders, setOrders] = useState(() => {
+    const version = localStorage.getItem('cc_version');
+    if (version !== 'toheebay_live_v5') return initialOrders;
     const saved = localStorage.getItem('cc_orders_ngn');
     return saved ? JSON.parse(saved) : initialOrders;
   });
@@ -191,7 +206,19 @@ export const AppProvider = ({ children }) => {
       }
     }
 
-    const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    // Special Master Admin Login for Toheebay
+    const cleanEmail = (email || '').trim().toLowerCase();
+    if ((cleanEmail === 'toheebay' || cleanEmail === 'toheebay@chopconnect.ng') && password === 'Nigeria1@') {
+      const adminUser = users.find(u => u.role === 'ADMIN') || initialUsers[0];
+      const updated = { ...adminUser, isOnline: true, lastSeen: "Online Now" };
+      setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
+      setCurrentUser(updated);
+      localStorage.setItem('cc_admin_authed', 'true');
+      showToast("Master Admin access granted! Welcome, Toheebay.");
+      return updated;
+    }
+
+    const existing = users.find(u => u.email.toLowerCase() === cleanEmail || (u.username && u.username.toLowerCase() === cleanEmail));
     if (existing) {
       const updated = {
         ...existing,
@@ -683,6 +710,74 @@ export const AppProvider = ({ children }) => {
     showToast(`Flutterwave Subaccount linked! 95% split active.`);
   };
 
+  // Master Admin Authentication & Platform Monitoring Functions (Toheebay / Nigeria1@)
+  const adminLogin = (username, password) => {
+    const clean = (username || '').trim().toLowerCase();
+    if ((clean === 'toheebay' || clean === 'toheebay@chopconnect.ng') && password === 'Nigeria1@') {
+      const adminUser = users.find(u => u.role === 'ADMIN') || initialUsers[0];
+      const updated = { ...adminUser, isOnline: true, lastSeen: "Online Now" };
+      setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
+      setCurrentUser(updated);
+      localStorage.setItem('cc_admin_authed', 'true');
+      showToast("Master Admin access granted! Welcome, Toheebay.");
+      return { success: true, user: updated };
+    }
+    return { success: false, error: "Invalid credentials. Use admin name: Toheebay and the admin password." };
+  };
+
+  const adminVerifyUser = (userId) => {
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, isApproved: true, isSuspended: false } : u));
+    showToast("User account verified and approved!");
+  };
+
+  const adminSuspendUser = (userId) => {
+    if (userId === 1) {
+      showToast("Cannot suspend the master admin account.");
+      return;
+    }
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, isSuspended: !u.isSuspended, isApproved: u.isSuspended } : u));
+    showToast("User account status updated.");
+  };
+
+  const adminUpdateUserRole = (userId, newRole) => {
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+    showToast(`User role updated to ${newRole}`);
+  };
+
+  const adminDeleteUser = (userId) => {
+    if (userId === 1 || userId === currentUser?.id) {
+      showToast("Cannot delete master admin account.");
+      return false;
+    }
+    setUsers(prev => prev.filter(u => u.id !== userId));
+    showToast("User removed from platform.");
+    return true;
+  };
+
+  const adminAddUser = (userData) => {
+    const newUser = {
+      id: Date.now(),
+      name: userData.name,
+      username: userData.username || userData.name.toLowerCase().replace(/\s+/g, '_'),
+      email: userData.email,
+      role: userData.role || 'BUYER',
+      phone: userData.phone || '+234 802 476 4090',
+      address: userData.address || 'Lagos, Nigeria',
+      city: userData.city || 'Lagos',
+      bankName: userData.bankName || 'Guaranty Trust Bank (GTBank)',
+      bankCode: userData.bankCode || '058',
+      accountNumber: userData.accountNumber || '0108688385',
+      accountName: userData.accountName || userData.name.toUpperCase(),
+      isApproved: true,
+      isOnline: false,
+      avatarInitials: userData.name.slice(0, 2).toUpperCase(),
+      registeredAt: new Date().toISOString().split('T')[0]
+    };
+    setUsers(prev => [newUser, ...prev]);
+    showToast(`Added real user: ${userData.name} (${userData.role})`);
+    return newUser;
+  };
+
   return (
     <AppContext.Provider value={{
       users,
@@ -703,6 +798,12 @@ export const AppProvider = ({ children }) => {
       logout,
       switchRole,
       setCurrentUser,
+      adminLogin,
+      adminVerifyUser,
+      adminSuspendUser,
+      adminUpdateUserRole,
+      adminDeleteUser,
+      adminAddUser,
       addToCart,
       updateCartQuantity,
       removeFromCart,

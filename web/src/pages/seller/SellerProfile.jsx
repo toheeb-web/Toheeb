@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   Store, 
@@ -9,13 +9,16 @@ import {
   LogOut, 
   MessageSquare,
   Sparkles,
-  Check 
+  Check,
+  Camera,
+  Upload
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const SellerProfile = () => {
   const { sellers, currentUser, updateSellerProfile, reviews, logout, showToast } = useApp();
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const currentSeller = sellers.find(s => s.userId === currentUser.id) || sellers[0];
   const sellerReviews = reviews.filter(r => r.targetType === 'SELLER' && r.targetId === currentSeller?.id);
@@ -26,6 +29,42 @@ export const SellerProfile = () => {
   const [description, setDescription] = useState(currentSeller?.description || '');
   const [phone, setPhone] = useState(currentSeller?.phone || '');
   const [address, setAddress] = useState(currentSeller?.address || '');
+
+  const handleKitchenPhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 800;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const photoUrl = canvas.toDataURL('image/jpeg', 0.85);
+        updateSellerProfile(currentSeller.id, { image: photoUrl });
+        showToast("Kitchen photo updated from phone storage!");
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -53,11 +92,35 @@ export const SellerProfile = () => {
         
         {/* Left Column: Kitchen Card */}
         <div className="md:col-span-1 bg-white rounded-3xl p-6 border border-[#E2D7CF] shadow-sm text-center">
-          <img
-            src={currentSeller?.image || "/chopconnect_hero_1788517559174.jpg"}
-            alt={currentSeller?.businessName}
-            className="w-24 h-24 rounded-2xl object-cover mx-auto mb-3 shadow-md ring-4 ring-brand-100"
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            accept="image/*" 
+            onChange={handleKitchenPhotoUpload} 
+            className="hidden" 
           />
+          <div className="relative w-28 h-28 mx-auto mb-3 group">
+            <img
+              src={currentSeller?.image || "/chopconnect_hero_1788517559174.jpg"}
+              alt={currentSeller?.businessName}
+              className="w-28 h-28 rounded-2xl object-cover shadow-md ring-4 ring-brand-100"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-1 right-1 p-2 bg-[#1C1B1F] text-white rounded-xl shadow-lg hover:bg-brand-500 transition-colors border-2 border-white"
+              title="Upload kitchen photo from phone storage"
+            >
+              <Camera className="w-4 h-4" />
+            </button>
+          </div>
+          <button 
+            type="button" 
+            onClick={() => fileInputRef.current?.click()}
+            className="text-[11px] font-bold text-brand-600 hover:underline mb-2 inline-flex items-center"
+          >
+            <Upload className="w-3 h-3 mr-1" /> Change Kitchen Photo from Phone
+          </button>
           <h2 className="text-lg font-extrabold text-[#1C1B1F]">{currentSeller?.businessName}</h2>
           <p className="text-xs text-[#79747E] mt-0.5">{currentSeller?.cuisineType}</p>
           

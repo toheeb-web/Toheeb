@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   User, 
@@ -9,13 +9,16 @@ import {
   LogOut, 
   Edit3, 
   Check, 
-  ShieldCheck 
+  ShieldCheck,
+  Camera,
+  Upload
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const BuyerProfile = () => {
   const { currentUser, orders, logout, showToast, users, setCurrentUser } = useApp();
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(currentUser?.name || '');
@@ -23,6 +26,29 @@ export const BuyerProfile = () => {
   const [address, setAddress] = useState(currentUser?.address || '');
 
   const buyerOrders = orders.filter(o => o.buyerId === currentUser.id || !o.buyerId);
+
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const dim = 240;
+        canvas.width = dim;
+        canvas.height = dim;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, dim, dim);
+        const avatarUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setCurrentUser({ ...currentUser, avatar: avatarUrl });
+        showToast("Profile photo updated from phone storage!");
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -50,9 +76,41 @@ export const BuyerProfile = () => {
         
         {/* User Card */}
         <div className="md:col-span-1 bg-white rounded-3xl p-6 border border-[#E2D7CF] shadow-sm text-center">
-          <div className="w-20 h-20 rounded-full bg-brand-500 text-white flex items-center justify-center font-extrabold text-2xl mx-auto mb-3 shadow-md ring-4 ring-brand-100">
-            {currentUser?.avatarInitials || 'CC'}
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            accept="image/*" 
+            onChange={handleAvatarUpload} 
+            className="hidden" 
+          />
+          <div className="relative w-24 h-24 mx-auto mb-3 group">
+            {currentUser?.avatar ? (
+              <img
+                src={currentUser.avatar}
+                alt={currentUser.name}
+                className="w-24 h-24 rounded-full object-cover shadow-md ring-4 ring-brand-100"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-brand-500 text-white flex items-center justify-center font-extrabold text-2xl shadow-md ring-4 ring-brand-100">
+                {currentUser?.avatarInitials || 'CC'}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-0 right-0 p-2 bg-[#1C1B1F] text-white rounded-full shadow-lg hover:bg-brand-500 transition-colors border-2 border-white"
+              title="Upload photo from phone storage"
+            >
+              <Camera className="w-4 h-4" />
+            </button>
           </div>
+          <button 
+            type="button" 
+            onClick={() => fileInputRef.current?.click()}
+            className="text-[11px] font-bold text-brand-600 hover:underline mb-2 inline-flex items-center"
+          >
+            <Upload className="w-3 h-3 mr-1" /> Change Photo from Phone
+          </button>
           <h2 className="text-lg font-extrabold text-[#1C1B1F]">{currentUser?.name}</h2>
           <p className="text-xs text-[#79747E] mt-0.5">{currentUser?.email}</p>
           <span className="inline-block mt-2 px-3 py-0.5 rounded-full text-xs font-bold bg-brand-50 text-brand-700 border border-brand-200">

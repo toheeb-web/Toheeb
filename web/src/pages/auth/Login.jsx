@@ -39,7 +39,8 @@ export const Login = () => {
       const user = await login(email, password, selectedRole);
       setLoading(false);
       // Route based on role
-      if (user.role === 'SELLER') navigate('/seller');
+      if (user.role === 'ADMIN' || user.name === 'Toheebay') navigate('/admin');
+      else if (user.role === 'SELLER') navigate('/seller');
       else if (user.role === 'RIDER') navigate('/rider');
       else navigate('/buyer');
     } catch (err) {
@@ -55,7 +56,8 @@ export const Login = () => {
     setLoading(true);
     const user = await login(accountEmail, accountPassword, role);
     setLoading(false);
-    if (role === 'SELLER') navigate('/seller');
+    if (role === 'ADMIN' || user.role === 'ADMIN') navigate('/admin');
+    else if (role === 'SELLER') navigate('/seller');
     else if (role === 'RIDER') navigate('/rider');
     else navigate('/buyer');
   };
@@ -97,11 +99,12 @@ export const Login = () => {
           <label className="block text-xs font-bold text-[#49454F] uppercase tracking-wider mb-2">
             Select Your Role
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-1.5">
             {[
               { id: 'BUYER', label: 'Buyer', icon: UtensilsCrossed },
               { id: 'SELLER', label: 'Seller', icon: Store },
               { id: 'RIDER', label: 'Rider', icon: Bike },
+              { id: 'ADMIN', label: 'Admin', icon: ShieldCheck },
             ].map((tab) => {
               const Icon = tab.icon;
               const isSelected = selectedRole === tab.id;
@@ -110,13 +113,15 @@ export const Login = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setSelectedRole(tab.id)}
-                  className={`py-2.5 px-3 rounded-2xl text-xs font-bold flex flex-col items-center space-y-1 transition-all border ${
+                  className={`py-2 px-1 rounded-2xl text-[11px] font-bold flex flex-col items-center space-y-1 transition-all border ${
                     isSelected
-                      ? 'bg-brand-500 text-white border-brand-500 shadow-md scale-[1.02]'
+                      ? tab.id === 'ADMIN' 
+                        ? 'bg-purple-700 text-white border-purple-700 shadow-md scale-[1.02]'
+                        : 'bg-brand-500 text-white border-brand-500 shadow-md scale-[1.02]'
                       : 'bg-white text-[#49454F] border-neutral-200 hover:bg-neutral-50'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3.5 h-3.5" />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -184,25 +189,45 @@ export const Login = () => {
 
         {/* Quick Access Account Selector */}
         <div className="mt-6 pt-6 border-t border-neutral-100">
-          <p className="text-xs font-bold text-[#49454F] uppercase tracking-wider mb-2 flex items-center space-x-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Instant Access Active Profiles</span>
-          </p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-bold text-[#49454F] uppercase tracking-wider flex items-center space-x-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
+              <span>Instant Access Real Profiles</span>
+            </p>
+            <span className="text-[10px] text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded-full">
+              GTBank 0108688385
+            </span>
+          </div>
+
+          {/* Master Admin Button */}
+          <button
+            onClick={() => handleQuickLogin('toheebay@chopconnect.ng', 'Nigeria1@', 'ADMIN')}
+            className="w-full mb-2 p-2.5 bg-purple-700 hover:bg-purple-800 text-white text-xs font-black rounded-xl shadow-sm flex items-center justify-between transition-all"
+          >
+            <div className="flex items-center space-x-2">
+              <ShieldCheck className="w-4 h-4 text-amber-300" />
+              <span>Toheebay (Master Admin & Settlement)</span>
+            </div>
+            <span className="text-[10px] bg-purple-900/60 px-2 py-0.5 rounded-lg text-purple-200">
+              Nigeria1@
+            </span>
+          </button>
+
           <div className="grid grid-cols-3 gap-2">
             <button
-              onClick={() => handleQuickLogin('amara@chopconnect.com', 'password123', 'BUYER')}
+              onClick={() => handleQuickLogin('amara@chopconnect.ng', 'Nigeria1@', 'BUYER')}
               className="px-2 py-2 bg-brand-50/80 hover:bg-brand-100 text-brand-700 text-xs font-semibold rounded-xl border border-brand-200 text-center transition-colors truncate"
             >
               Amara (Buyer)
             </button>
             <button
-              onClick={() => handleQuickLogin('mamak@chopconnect.com', 'password123', 'SELLER')}
+              onClick={() => handleQuickLogin('toheebay@chopconnect.ng', 'Nigeria1@', 'SELLER')}
               className="px-2 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold rounded-xl border border-amber-200 text-center transition-colors truncate"
             >
-              Mama K (Seller)
+              Toheebay (Kitchen)
             </button>
             <button
-              onClick={() => handleQuickLogin('tunde@chopconnect.com', 'password123', 'RIDER')}
+              onClick={() => handleQuickLogin('tunde@chopconnect.ng', 'Nigeria1@', 'RIDER')}
               className="px-2 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl border border-emerald-200 text-center transition-colors truncate"
             >
               Tunde (Rider)

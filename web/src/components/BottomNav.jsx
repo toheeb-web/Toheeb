@@ -10,7 +10,8 @@ import {
   PlusCircle, 
   ClipboardList, 
   BarChart3,
-  Compass
+  Compass,
+  ShieldCheck
 } from 'lucide-react';
 
 export const BottomNav = () => {
@@ -19,6 +20,13 @@ export const BottomNav = () => {
 
   const getNavItems = () => {
     switch (currentUser?.role) {
+      case 'ADMIN':
+        return [
+          { to: '/admin', label: 'Admin Hub', icon: ShieldCheck },
+          { to: '/buyer', label: 'Menu', icon: Store },
+          { to: '/seller', label: 'Kitchen', icon: BarChart3 },
+          { to: '/rider', label: 'Rider', icon: Bike }
+        ];
       case 'SELLER':
         return [
           { to: '/seller', label: 'Dashboard', icon: BarChart3 },
